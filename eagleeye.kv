@@ -1,0 +1,146 @@
+WindowManager:
+    SplashScreen
+    LoginScreen
+    RegisterScreen
+    DataPolicyScreen
+<SplashScreen>
+    name: "Splash"
+    Image:
+        source: "logo.jpg"
+        size_hint_y: 0.4
+        size_hint_x: .2
+        pos_hint: {'center_y': .7, 'center_x': .5}
+    MDLabel:
+        text: "Eagle Eye"
+        halign: "center"
+        theme_text_color: "Custom"
+        text_color: "red"
+        font_style: "H3"
+        pos_hint: {'center_x': 0.5, 'center_y':0.4}
+<LoginScreen>
+    name: "login"
+    padding: "10dp"
+    user_phone: user_pn
+    user_password: user_pw
+    GridLayout
+        cols: 1
+        MDTopAppBar:
+            title:" Eagle Eye"
+            text_color: "white"
+            elavation: 10
+            right_action_items: [["shield", lambda x: root.switchToDataPolicy()]]
+        GridLayout:
+            padding: "15dp"
+            cols: 1   
+            MDTextField:
+                icon_left: "phone"
+                width: "100dp"
+                margin: "20dp"
+                hint_text: "Enter User phone number"
+                mode: "rectangle"
+                id: user_pn
+                required: True
+            MDTextField:
+                icon_left: "key-variant"
+                width: "100dp"
+                margin: "30dp"
+                hint_text: "Enter User password"
+                mode: "rectangle"
+                id: user_pw
+                password: True
+                required: True
+    MDRaisedButton:
+        text: "Login"
+        icon: "login"
+        margin: "40"
+        padding: 2
+        markup: True
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        on_press: root.loginUser()
+        width: 200
+    MDSpinner:
+        size_hint: None, None
+        size: dp(26), dp(26)
+        pos_hint: {"center_x": 0.5, "center_y": 0.3}
+        active: True if root.busy else False
+    MDTextButton:
+        text: "Register"
+        pos_hint: {'center_x': 0.5, 'center_y':0.4}
+        on_press: 
+            root.busy = True
+            root.switchToRegister()
+<RegisterScreen>
+    name: "registerScreen"
+    padding: "10dp"
+    user_name: user_name
+    user_phone: user_pn
+    user_password: user_pw
+    user_district: user_district
+    GridLayout
+        cols: 1
+        MDTopAppBar:
+            title:" Eagle Eye"
+            text_color: "white"
+            elavation: 10
+            right_action_items: [["shield", lambda x: root.switchToDataPolicy()]]
+        GridLayout:
+            padding: "15dp"
+            cols: 1   
+            MDTextField:
+                width: "100dp"
+                margin: "20dp"
+                hint_text: "Enter your name"
+                mode: "rectangle"
+                id: user_name
+                required: True
+            MDTextField:
+                width: "100dp"
+                margin: "30dp"
+                hint_text: "Enter your phone number"
+                mode: "rectangle"
+                id: user_pn
+                required: True
+            MDTextField:
+                width: "100dp"
+                margin: "30dp"
+                hint_text: "Enter your district of residence"
+                mode: "rectangle"
+                id: user_district
+                required: True
+            MDTextField:
+                width: "100dp"
+                margin: "30dp"
+                hint_text: "Enter your password"
+                mode: "rectangle"
+                id: user_pw
+                password: True
+                required: True
+    MDRaisedButton:
+        text: "Register"
+        icon: "login"
+        margin: "40"
+        padding: 2
+        markup: True
+        pos_hint: {"center_x": 0.5, "center_y": 0.4}
+        on_press: root.registerUser()
+        width: 200
+    MDSpinner:
+        size_hint: None, None
+        size: dp(26), dp(26)
+        pos_hint: {"center_x": 0.5, "center_y": 0.3}
+    MDTextButton:
+        text: "Login"
+        pos_hint: {'center_x': 0.5, 'center_y':0.2}
+        on_press: root.switchToLogin()       
+<DataPolicyScreen>
+    name: "DataPolicyScreen"
+    GridLayout:
+        cols: 1
+        MDTopAppBar:
+            title:"Data Protection"
+            text_color: "white"
+            md_text_color: app.theme_cls.primary_light
+            elavation: 10
+            left_action_items: [["arrow-left", lambda x: root.on_back()]]
+        MDLabel:
+            text: "Our Data Protection policy"
