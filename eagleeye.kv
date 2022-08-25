@@ -73,8 +73,8 @@ WindowManager:
     name: "registerScreen"
     padding: "10dp"
     user_name: user_name
-    user_phone: user_pn
-    user_password: user_pw
+    user_phone: user_phone
+    user_password: user_password
     user_district: user_district
     GridLayout
         cols: 1
@@ -98,7 +98,7 @@ WindowManager:
                 margin: "30dp"
                 hint_text: "Enter your phone number"
                 mode: "rectangle"
-                id: user_pn
+                id: user_phone
                 required: True
             MDTextField:
                 width: "100dp"
@@ -112,7 +112,7 @@ WindowManager:
                 margin: "30dp"
                 hint_text: "Enter your password"
                 mode: "rectangle"
-                id: user_pw
+                id: user_password
                 password: True
                 required: True
     MDRaisedButton:
