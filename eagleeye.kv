@@ -3,6 +3,11 @@ WindowManager:
     LoginScreen
     RegisterScreen
     DataPolicyScreen
+    HomeScreen
+    ProfileScreen
+    KBHomeScreen
+    DiseaseScreen
+    DiseaseImageScreen
 <SplashScreen>
     name: "Splash"
     Image:
@@ -30,25 +35,26 @@ WindowManager:
             elavation: 10
             right_action_items: [["shield", lambda x: root.switchToDataPolicy()]]
         GridLayout:
-            padding: "15dp"
+            padding: [100, 10]
             cols: 1   
+            width: 200
+            orientation: "rl-tb"
+            background_color: 0, 1, 0, 0
             MDTextField:
                 icon_left: "phone"
-                width: "100dp"
-                margin: "20dp"
-                hint_text: "Enter User phone number"
+                hint_text: "Phone number"
                 mode: "rectangle"
                 id: user_pn
+                padding: 100
                 required: True
             MDTextField:
                 icon_left: "key-variant"
-                width: "100dp"
-                margin: "30dp"
-                hint_text: "Enter User password"
+                hint_text: "Password"
                 mode: "rectangle"
                 id: user_pw
                 password: True
                 required: True
+                padding: 20
     MDRaisedButton:
         text: "Login"
         icon: "login"
@@ -56,12 +62,12 @@ WindowManager:
         padding: 2
         markup: True
         pos_hint: {"center_x": 0.5, "center_y": 0.5}
-        on_press: root.loginUser()
+        on_press: root.getUserLocation()
         width: 200
     MDSpinner:
         size_hint: None, None
         size: dp(26), dp(26)
-        pos_hint: {"center_x": 0.5, "center_y": 0.3}
+        pos_hint: {"center_x": 0.5, "center_y": 0.1}
         active: True if root.busy else False
     MDTextButton:
         text: "Register"
@@ -75,7 +81,6 @@ WindowManager:
     user_name: user_name
     user_phone: user_phone
     user_password: user_password
-    user_district: user_district
     GridLayout
         cols: 1
         MDTopAppBar:
@@ -94,18 +99,11 @@ WindowManager:
                 id: user_name
                 required: True
             MDTextField:
-                width: "100dp"
+                width: "80dp"
                 margin: "30dp"
                 hint_text: "Enter your phone number"
                 mode: "rectangle"
                 id: user_phone
-                required: True
-            MDTextField:
-                width: "100dp"
-                margin: "30dp"
-                hint_text: "Enter your district of residence"
-                mode: "rectangle"
-                id: user_district
                 required: True
             MDTextField:
                 width: "100dp"
@@ -122,7 +120,7 @@ WindowManager:
         padding: 2
         markup: True
         pos_hint: {"center_x": 0.5, "center_y": 0.4}
-        on_press: root.registerUser()
+        on_press: root.getUserLocation()
         width: 200
     MDSpinner:
         size_hint: None, None
@@ -144,3 +142,133 @@ WindowManager:
             left_action_items: [["arrow-left", lambda x: root.on_back()]]
         MDLabel:
             text: "Our Data Protection policy"
+<HomeScreen>
+    name: 'HomeScreen'
+    MDBottomAppBar:
+        MDTopAppBar:
+            icon: "camera"
+            mode: "center"
+            icon_color: 0, 1, 0, 1
+            left_action_items: [["menu", lambda x: x], ["school", lambda x: root.switchToKBHome()]]
+            right_action_items: [["cog", lambda x: x], ["account", lambda x: root.switchToProfile()]]
+            mode: "center"
+            type: "bottom"
+    MDCard
+        size_hint: None, None
+        size: "280dp", "180dp"
+        pos_hint: {'center_x': .5, 'center_y':.5}
+        padding: [10, 5]
+        MDLabel:
+            text: "{}C".format(root.temp)
+            font_style: "H3"
+        MDLabel:
+            text: "{}".format(root.userLocation)
+            font_style: "H5"
+<ProfileScreen>
+    name: "ProfileScreen"
+    GridLayout:
+        cols: 1
+        MDTopAppBar:
+            title:"User Profile"
+            text_color: "white"
+            md_text_color: app.theme_cls.primary_light
+            elavation: 10
+            left_action_items: [["arrow-left", lambda x: root.on_back()]]
+    BoxLayout:
+        pos_hint: {'center_x': .5, 'center_y':.4}
+        GridLayout
+            cols: 1
+            padding: [3, 1]
+            TwoLineListItem:
+                text: "User name"
+                secondary_text: "{}".format(root.user_name)
+            TwoLineListItem:
+                text: "District"
+                secondary_text: "{}".format(root.user_district)
+            TwoLineListItem:
+                text: "Phone Number"
+                secondary_text: "{}".format(root.pNumber)
+    MDFloatingActionButton:
+        icon: "pencil"
+        md_bg_color: app.theme_cls.primary_color
+        pos_hint: {'center_x': 0.9, 'center_y':0.3}
+<KBHomeScreen>
+    name: "KBHomeScreen"
+    GridLayout:
+        cols: 1
+        MDTopAppBar:
+            title:"Tomato Diseases"
+            text_color: "white"
+            md_text_color: app.theme_cls.primary_light
+            elavation: 10
+            left_action_items: [["arrow-left", lambda x: root.on_back()]]
+    ScrollView:
+        pos_hint: {'center_x': .5, 'center_y':.4}
+        MDList:
+            id: container
+<DiseaseScreen>
+    name: "DiseaseScreen"
+    MDBoxLayout:
+        orientation: "vertical"
+        MDTopAppBar:
+            title:"{}".format(root.diseaseName)
+            elavation: 10
+            left_action_items: [["arrow-left", lambda x: root.on_back()]]
+            right_action_items: [["image", lambda x: root.switchToImage()]]
+            pos_hint: {'top':1.0}
+        ScrollView:
+            MDBoxLayout:
+                size_hint: 1, None
+                adaptive_height: True
+                height: 500
+                orientation: 'vertical'   
+                padding: 2 
+                MDLabel:
+                    text: "Description"
+                    font_style: "H4"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    text_color: get_color_from_hex('#ef1234')
+                    margin: 50
+                MDLabel:
+                    text: "{}".format(root.diseaseDesc)
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    padding: [2, 1]
+                    halign: 'justify'
+                MDLabel:
+                    text: "Symptoms"
+                    font_style: "H4"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                MDList:
+                    id: symptoms_list
+                MDLabel:
+                    text: "Methods to control and prevent infection"
+                    font_style: "H4"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                MDList:
+                    id: controls_list
+                MDLabel:
+                    text: "Fungicides"
+                    font_style: "H4"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                MDList:
+                    id: chemicals_list
+<DiseaseImageScreen>
+    name: "DiseaseImageScreen"
+    MDBoxLayout:
+        orientation: "vertical"
+        MDTopAppBar:
+            title:"Diseased Plant Image"
+            elavation: 10
+            left_action_items: [["arrow-left", lambda x: root.on_back()]]
+            pos_hint: {'top':1.0}
+        AsyncImage:
+            source: "res/{}".format(root.imageSource)
+        MDLabel:
+            text: "An image of the {} disease infected tomato plant".format(root.caption)
+            size_hint_y: None
+            height: self.texture_size[1]

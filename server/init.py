@@ -27,7 +27,7 @@ def registerUser():
         db.session.commit()
         success = True
    
-    return make_response(jsonify({"success": success}),201)
+    return make_response(jsonify({"success": success}),200)
 
 @app.route('/login', methods = ['POST'])
 def login():
@@ -39,6 +39,14 @@ def login():
             success = True
 
     return make_response(jsonify({'success': success}))
+
+@app.route('/profile/<pNumber>')
+def getUserProfile(pNumber):
+    profile = None
+    user = UserSchema(many=True).dump(Users.query.filter_by(pNumber = pNumber))
+    if(user):
+        profile = user
+    return make_response(jsonify({'profile':profile}))
     
 @app.route('/', methods=['GET'])
 def loadUsers():
