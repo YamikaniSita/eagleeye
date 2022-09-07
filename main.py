@@ -5,15 +5,18 @@ from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.storage.jsonstore import JsonStore
 from kivymd.uix.snackbar import Snackbar
-from kivymd.uix.list import OneLineListItem
+from kivymd.uix.list import OneLineListItem, OneLineAvatarListItem
 from kivy.clock import Clock
 from kivy.properties import ObjectProperty, StringProperty
 from kivy.network.urlrequest import UrlRequest
 import json
-from front_db_scripts import DBHandler
-from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelThreeLine
-from kivymd.uix.label import MDLabel
+from kivymd.uix.button import MDRaisedButton
 
+from sqlalchemy import true
+from front_db_scripts import DBHandler
+from kivymd.uix.label import MDLabel
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.boxlayout import BoxLayout
 prev_screen = None
 class SplashScreen(Screen):
     def on_enter(self, *args):
@@ -90,6 +93,7 @@ class DataPolicyScreen(Screen):
 class HomeScreen(Screen):
     userLocation = StringProperty('')
     temp = StringProperty('')
+    dialog = None
     def on_enter(self, *args):
         store = JsonStore('user_account.json')
         locale = "{}, Malawi".format(store.get('user_profile')['district'])
@@ -106,6 +110,29 @@ class HomeScreen(Screen):
         self.manager.current = "ProfileScreen"
     def switchToKBHome(self):
         self.manager.current = "KBHomeScreen"
+    def showPopup(self):
+        if not self.dialog:
+            self.dialog = MDDialog(
+                title = "[color=ff0101]Menu",
+                type = "simple",
+                items = [
+                    OneLineAvatarListItem(text='Add SMS Client'),
+                    OneLineAvatarListItem(text='Refresh your location', on_press=self.refreshLocation)
+                ]
+            )
+        self.dialog.open()
+    def refreshLocation(self, instance):
+        self.dialog.dismiss()
+        req = UrlRequest('https://ipinfo.io/json?token=39895a94007e4d', on_success=self.setNewLocation, on_failure=self.refreshFailed)
+    def setNewLocation(self, req, response):
+        self.coords = response['loc']
+        self.district = response['city']
+        store = JsonStore('user_account.json')
+        pNumber = store['user_profile']['pNumber']
+        store.put('user_profile', coords=self.coords, district=self.district, pNumber=pNumber)
+        Snackbar(text="Location refreshed to {} coordinates: {}. Restart app to reflect.".format(self.district, self.coords)).open()
+    def refreshFailed(self):
+        Snackbar(text="Couldnt fetch current location. Retry later.").open()
 class ProfileScreen(Screen):
     user_district = StringProperty('')
     pNumber = StringProperty()
@@ -113,12 +140,14 @@ class ProfileScreen(Screen):
     def on_enter(self, *args):
         store = JsonStore("user_account.json")
         pNumber = store.get('user_profile')['pNumber']
-        req = UrlRequest("http://127.0.0.1:5000/profile/{}".format(pNumber), on_success=self.success, on_failure=self.failed)
+        req = UrlRequest("http://127.0.0.1:5000/profile/{}".format(pNumber), timeout=10, on_cancel=self.cancelled, on_success=self.success, on_failure=self.failed)
     def success(self, req, response):
         self.user_name = response['profile'][0]['name']
         self.pNumber = response['profile'][0]['pNumber']
         self.user_district = response['profile'][0]['district']
     def failed(self, req, error):
+        Snackbar(text="Network error.").open()
+    def cancelled(self, req):
         Snackbar(text="Network error.").open()
     def on_back(self):
         self.manager.current = "HomeScreen"
@@ -138,7 +167,34 @@ class KBHomeScreen(Screen):
     def clk(self, instance):
         self.manager.disease_id = instance.id
         self.manager.disease_name = instance.text
-        self.manager.current = "DiseaseScreen"
+        self.manager.current = "DiseaseScreen"    
+    def launch_search(self):
+        content_cls = Content()
+        self.dialog = MDDialog(
+                        title = '[color=ff0101]Search',
+                        type='custom',
+                        height = "400",
+                        auto_dismiss=true,
+                        size_hint=(.7, .6),
+                        content_cls=content_cls,
+                        buttons = [MDRaisedButton(text='Search', on_release=lambda x: self.search(x, content_cls))]
+                        )
+        self.dialog.open()
+    def search(self, instance, content_cls):
+        field = content_cls.ids.symptoms
+        entered_ = field._get_text()
+        symptoms_ = entered_.split(',')
+        res = DBHandler().searchSymptoms(symptoms_)
+        if len(res) > 0:
+            self.ids.container.clear_widgets()
+        for x in range(len(res)):
+            text = res[x][1]
+            id = res[x][0]
+            self.ids.container.add_widget(
+            OneLineListItem(text=f"{text}", id=str(id), on_press=self.clk)
+        )
+        Snackbar(text="{} disease(s) found.".format(len(res))).open()
+        self.dialog.dismiss()
 class DiseaseScreen(Screen):
     diseaseName = StringProperty("")
     diseaseDesc = StringProperty("")
@@ -182,6 +238,10 @@ class DiseaseImageScreen(Screen):
         self.caption = self.manager.diseaseName
     def on_back(self):
         self.manager.current = "DiseaseScreen"
+class Item(OneLineListItem):
+    divider = None
+class Content(BoxLayout):
+    pass
 class WindowManager(ScreenManager):
     pass
 class EagleEyeApp(MDApp):

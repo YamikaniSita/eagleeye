@@ -149,7 +149,7 @@ WindowManager:
             icon: "camera"
             mode: "center"
             icon_color: 0, 1, 0, 1
-            left_action_items: [["menu", lambda x: x], ["school", lambda x: root.switchToKBHome()]]
+            left_action_items: [["menu", lambda x: root.showPopup()], ["school", lambda x: root.switchToKBHome()]]
             right_action_items: [["cog", lambda x: x], ["account", lambda x: root.switchToProfile()]]
             mode: "center"
             type: "bottom"
@@ -191,7 +191,7 @@ WindowManager:
     MDFloatingActionButton:
         icon: "pencil"
         md_bg_color: app.theme_cls.primary_color
-        pos_hint: {'center_x': 0.9, 'center_y':0.3}
+        pos_hint: {'center_x': 0.9, 'center_y':0.2}
 <KBHomeScreen>
     name: "KBHomeScreen"
     GridLayout:
@@ -202,6 +202,7 @@ WindowManager:
             md_text_color: app.theme_cls.primary_light
             elavation: 10
             left_action_items: [["arrow-left", lambda x: root.on_back()]]
+            right_action_items: [["magnify", lambda x: root.launch_search()]]
     ScrollView:
         pos_hint: {'center_x': .5, 'center_y':.4}
         MDList:
@@ -262,13 +263,25 @@ WindowManager:
     MDBoxLayout:
         orientation: "vertical"
         MDTopAppBar:
-            title:"Diseased Plant Image"
             elavation: 10
-            left_action_items: [["arrow-left", lambda x: root.on_back()]]
+            right_action_items: [["close", lambda x: root.on_back()]]
             pos_hint: {'top':1.0}
-        AsyncImage:
-            source: "res/{}".format(root.imageSource)
+        GridLayout:
+            cols: 1
+            AsyncImage:
+                source: "res/{}".format(root.imageSource)
+            MDLabel:
+                text: "An image of the {} disease infected tomato plant".format(root.caption)
+                size_hint_y: None
+                height: self.texture_size[1]
+                halign: 'center'
+<Content>
+    GridLayout:
+        cols: 1
+        height:"400dp"
         MDLabel:
-            text: "An image of the {} disease infected tomato plant".format(root.caption)
-            size_hint_y: None
-            height: self.texture_size[1]
+            text: 'Enter symptoms below seperate multiple by commas (,)'        
+        MDTextField:
+            icon_left: "magnify"
+            id: symptoms
+            text_hint: "Enter symptoms you noticed"
