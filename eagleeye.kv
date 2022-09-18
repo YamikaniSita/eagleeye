@@ -159,7 +159,7 @@ WindowManager:
         pos_hint: {'center_x': .5, 'center_y':.5}
         padding: [10, 5]
         MDLabel:
-            text: "{}C".format(root.temp)
+            text: "{}".format(root.temp)
             font_style: "H3"
         MDLabel:
             text: "{}".format(root.userLocation)
@@ -269,7 +269,7 @@ WindowManager:
         GridLayout:
             cols: 1
             AsyncImage:
-                source: "res/{}".format(root.imageSource)
+                source: "{}".format(root.imageSource)
             MDLabel:
                 text: "An image of the {} disease infected tomato plant".format(root.caption)
                 size_hint_y: None

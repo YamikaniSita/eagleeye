@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>EagleEye-Panel</title>
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+        <meta name="color-scheme" content="light dark">
+        <link href="{{url_for('static', filename='stylesheets/tailwind.css')}}"  rel='stylesheet' type='text/css'/> 
+        <script src="{{url_for('static', filename='javascripts/angular/angular.js')}}"></script>
+        <script src="{{url_for('static', filename='javascripts/angular/angular-resource.js')}}"></script>
+        <script src="{{url_for('static', filename='javascripts/angular/angular-route.js')}}"></script>
+    </head>
+    <body class="bg-gray-100">
+        <nav class='w-full bg-white p-2 border shadow shadow-2xl'>                
+            <div class='font-bold p-5 text-3xl text-red-300'>Eagle Eye</div>
+            <div class='absolute right-0 top-0 m-6 p-4'>
+                <a href='submissions/' class='m-2 p-2 hover:text-white hover:font-bold hover:bg-red-300 border border-1-white rounded rounded-2 hover:font-extrabold'>Propose Mwambi</a>
+                <a href='#/' class='m-2 p-2 hover:text-white hover:font-bold hover:bg-red-300 border border-1-white rounded rounded-2 font-bold'>Admin Login</a>
+            </div>
+        </nav>
+
+    </body>
+</html>

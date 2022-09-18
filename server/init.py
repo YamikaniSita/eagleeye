@@ -1,6 +1,6 @@
 import json
 from urllib import response
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, render_template, redirect
 from flask_marshmallow import Marshmallow
 from models import db, Users
 from schemas import UserSchema
@@ -48,14 +48,39 @@ def getUserProfile(pNumber):
         profile = user
     return make_response(jsonify({'profile':profile}))
     
-@app.route('/', methods=['GET'])
-def loadUsers():
-    get_users = Users.query.all()
-    print('/')
-    author_schema = UserSchema(many=True)
-    users = author_schema.dump(get_users)
-    return make_response(jsonify({'users': users}))
+# @app.route('/', methods=['GET'])
+# def loadUsers():
+#     get_users = Users.query.all()
+#     print('/')
+#     author_schema = UserSchema(many=True)
+#     users = author_schema.dump(get_users)
+#     return make_response(jsonify({'users': users}))
+
+@app.route('/app/', methods=['GET'])
+def render_login():
+    return render_template('login_page.html')
+
+@app.route('/app/auth-admin/', methods =['POST'])
+def auth_admin():
+    data = request.get_json(force=True)
+    current_user = Users.query.filter_by(name = data['userName']).first()
+    resp = make_response(jsonify({'success': False}))
+    if current_user:
+        if hashlib.md5(data['userPassword'].encode()).hexdigest() == current_user.password:  
+            if current_user.role != 'app_user':
+                resp = make_response(jsonify({'success': True}))
+                resp.set_cookie('user', current_user.name, max_age=60*60*24)
+    return resp
+
+@app.route('/app/panel/')
+def render_panel():
+    if request.cookies.get('user'):
+        user_ = request.cookies.get('user')
+        return render_template('admin_home_main.html')
+    else:
+        #loggin
+        return redirect('/app/', code=302)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)

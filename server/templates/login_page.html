@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html ng-app="EagleEyeAuth">
+    <head>
+        <title>EagleEye-Login</title>
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+        <meta name="color-scheme" content="light dark">
+        <link href="{{url_for('static', filename='stylesheets/tailwind.css')}}"  rel='stylesheet' type='text/css'/> 
+        <script src="{{url_for('static', filename='javascripts/angular/angular.js')}}"></script>
+        <script src="{{url_for('static', filename='javascripts/angular/angular-resource.js')}}"></script>
+        <script src="{{url_for('static', filename='javascripts/angular/angular-route.js')}}"></script>
+    </head>
+    <body class='w-full h-full relative bg-gray-300'>
+        <div class='w-2/4 h-1/2 m-auto bg-white rounded p-8 m-8 border shadow top-1/4 relative' ng-controller='login'>
+            <img src="{{url_for('static', filename='logo.jpg')}}" class="h-32 w-32 m-auto relative"/>
+            <h1 class='bold font-bold m-4'>{% raw %} {{prompt}}  {% endraw %}</h1>
+            <form>
+                <input type="text" ng-model='userName' class="rounded border p-4 w-full block m-4" placeholder="Enter User Name">
+                <input type="password" ng-model='userPassword' class="rounded border p-4 w-full block m-4" placeholder="Enter Password">
+                <div class='bg-blue-400 text-white p-4 w-1/4 rounded border shadow block m-4 align-center' ng-click='login()'>{% raw %}{{state}}{% endraw %}</div>
+            </form>
+        </div>
+    </body>
+    <script>
+        let app = angular.module('EagleEyeAuth', ['ngRoute', 'ngResource'])
+        let url = 'localhost:5000'
+        app.controller('login', function($scope, $http){
+            $scope.prompt = $scope.state = 'Login'
+            $scope.login = function(){
+                $scope.state = 'Authenticating..'
+                $http.post('auth-admin/', {
+                    userName: $scope.userName,
+                    userPassword: $scope.userPassword
+                }).success(function(response){
+                    if(response.success){
+                        //redirect
+                        window.location = 'panel/'
+                    }
+                    else{
+                        $scope.prompt = 'User details unknown/not allowed.'
+                        $scope.state = 'Login'
+                    }
+                }).error(function(err){
+                    console.log(err)
+                    $scope.prompt = 'Network/Server error, retry.'
+                })
+            }
+        });
+    </script>
+</html>

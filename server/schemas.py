@@ -13,4 +13,5 @@ class UserSchema(SQLAlchemyAutoSchema):
     password = fields.String(required=True)
     district = fields.String(required=True)
     pNumber = fields.String(required=True)
+    role = fields.String(required=True)
     

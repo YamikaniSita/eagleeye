@@ -1,6 +1,4 @@
 # -*- coding utf-8 -*-
-from re import S
-from tkinter import ON
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.storage.jsonstore import JsonStore
@@ -12,18 +10,27 @@ from kivy.network.urlrequest import UrlRequest
 import json
 from kivymd.uix.button import MDRaisedButton
 
-from sqlalchemy import true
 from front_db_scripts import DBHandler
 from kivymd.uix.label import MDLabel
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import BoxLayout
+from kivy.logger import Logger
 prev_screen = None
 class SplashScreen(Screen):
     def on_enter(self, *args):
+        Logger.info('Loading profile')
         store = JsonStore('user_account.json')
+        # store.delete('user_profile')
+        #127 for local runs, 192 for LAN comment out the idle one
+
+        # self.manager.url = 'http://127.0.0.1:5000'
+        self.manager.url = 'http://192.168.43.230:5000'
+
         if(store.exists('user_profile')):
+            Logger.info('Profile Found')
             self.userRegistered = True
         else:
+            Logger.info('Profile not found')
             self.userRegistered = False
         Clock.schedule_once(self.switch, 10)
     def switch(self, dt):
@@ -39,14 +46,17 @@ class LoginScreen(Screen):
         super().__init__(**kwargs)
         self.busy = False
     def getUserLocation(self):
-        req = UrlRequest('https://ipinfo.io/json?token=39895a94007e4d', on_success=self.loginUser, on_failure=self.failed)
+        req = UrlRequest('https://ipinfo.io/json?token=39895a94007e4d', on_success=self.loginUser, on_progress=self.progress, on_failure=self.failed)
+        Logger.info('Attempting to connect to IpInfo')
     def loginUser(self, req, response):
+        Logger.info('IpInfo acquired')
         self.coords = response['loc']
         self.district = response['city']
         params = json.dumps({'pNumber': self.user_phone.text, 'password':self.user_password.text})
         headers = {'Content-Type':'application/json'}
-        req = UrlRequest('http://127.0.0.1:5000/login', on_success=self.success, on_failure=self.failed, req_body=params, req_headers=headers)
+        req = UrlRequest(self.manager.url+'/login', on_success=self.success, on_progress=self.progress, on_failure=self.failed, req_body=params, req_headers=headers)
     def success(self, req, result):
+        Logger.info(result)
         if result['success']:
             store = JsonStore('user_account.json')
             store.put('user_profile', coords=self.coords, district=self.district, pNumber=self.user_phone.text)
@@ -55,6 +65,8 @@ class LoginScreen(Screen):
             Snackbar(text="Authentication failed. Details entered not known, check please.").open()
     def failed(self, req, err):
         Snackbar(text="Network/server error").open()
+    def progress(self, request, current_size, total_size):
+        Logger.info('Request progress detected @ {}/{}'.format(current_size, total_size))
     def switchToRegister(self):
         self.manager.current = "registerScreen"
     def switchToDataPolicy(self):
@@ -70,15 +82,17 @@ class RegisterScreen(Screen):
         self.manager.prev_screen = "registerScreen"
         self.manager.current = "DataPolicyScreen"
     def getUserLocation(self):
-        req = UrlRequest('https://ipinfo.io/json?token=39895a94007e4d', on_success=self.registerUser, on_failure=self.failed)
+        Logger.info('Attempting to connect to IpInfo')
+        req = UrlRequest('https://ipinfo.io/json?token=39895a94007e4d', on_success=self.registerUser, on_progress=self.progress, on_failure=self.failed)
     def registerUser(self, req, response):
+        Logger.info('IpInfo Acquired..creating account')
         self.coords = response['loc']
         self.district = response['city']
-        params = json.dumps({'name': self.user_name.text, 'district': self.district, 'password': self.user_password.text, 'pNumber': self.user_phone.text})
+        params = json.dumps({'name': self.user_name.text, 'district': self.district, 'password': self.user_password.text, 'pNumber': self.user_phone.text, 'role': 'app_user'})
         headers = {'Content-Type': 'application/json'}
-        req = UrlRequest('http://127.0.0.1:5000/register', on_success=self.success, on_failure=self.failed, req_body=params, req_headers=headers)
+        req = UrlRequest(self.manager.url+'/register', on_success=self.success, on_progress = self.progress, on_failure=self.failed, req_body=params, req_headers=headers)
     def success(self, req, result):
-        print(result)
+        Logger.info(result)
         if result['success']:
             store = JsonStore('user_account.json')
             store.put('user_profile', coords=self.coords, district=self.district, pNumber=self.user_phone.text)
@@ -86,8 +100,21 @@ class RegisterScreen(Screen):
         else:
             Snackbar(text="Registration failed, phone number may already be in use.").open()
     def failed(self, req, err):
+        Logger.info('request failed')
         Snackbar(text="Network/server error").open()
+    def progress(self, request, current_size, total_size):
+        Logger.info('Request progress detected @ {}/{}'.format(current_size, total_size))
 class DataPolicyScreen(Screen):
+    def on_enter(self, *args):
+        req = UrlRequest(self.manager.url+'/', on_success=self.success, on_failure=self.failed, on_progress=self.progress)
+    def success(self, req, response):
+        Logger.info('success on test request')
+        Logger.info(response)
+    def failed(self, req, error):
+        Logger.info('error at test request detail below')
+        Logger.info(error)
+    def progress(self, request, current_size, total_size):
+        Logger.info('Progress detected on test request now @ {}/{}'.format(current_size, total_size))
     def on_back(self):
         self.manager.current = self.manager.prev_screen
 class HomeScreen(Screen):
@@ -103,7 +130,7 @@ class HomeScreen(Screen):
         url = "https://api.openweathermap.org/data/2.5/weather?lat={}&lon={}&units=metric&appid=5fe9e0dac8d9f901c5ac48e7dbc19c04".format(lat, long)
         req = UrlRequest(url, on_success=self.success, on_failure=self.failed)
     def success(self, req, response):
-        self.temp = str(int(response['main']['temp']))
+        self.temp = str(int(response['main']['temp']))+u"\u00B0C"
     def failed(self, req, error):
         print(error)
     def switchToProfile(self):
@@ -140,7 +167,8 @@ class ProfileScreen(Screen):
     def on_enter(self, *args):
         store = JsonStore("user_account.json")
         pNumber = store.get('user_profile')['pNumber']
-        req = UrlRequest("http://127.0.0.1:5000/profile/{}".format(pNumber), timeout=10, on_cancel=self.cancelled, on_success=self.success, on_failure=self.failed)
+        print(self.manager.url)
+        req = UrlRequest(self.manager.url+"/profile/{}".format(pNumber), timeout=10, on_cancel=self.cancelled, on_success=self.success, on_failure=self.failed)
     def success(self, req, response):
         self.user_name = response['profile'][0]['name']
         self.pNumber = response['profile'][0]['pNumber']
@@ -174,7 +202,7 @@ class KBHomeScreen(Screen):
                         title = '[color=ff0101]Search',
                         type='custom',
                         height = "400",
-                        auto_dismiss=true,
+                        auto_dismiss=True,
                         size_hint=(.7, .6),
                         content_cls=content_cls,
                         buttons = [MDRaisedButton(text='Search', on_release=lambda x: self.search(x, content_cls))]

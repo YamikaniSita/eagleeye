@@ -8,16 +8,18 @@ class Users(db.Model):
     district = db.Column(db.String(30))
     pNumber = db.Column(db.String(10))
     password = db.Column(db.String(100))
+    role = db.Column(db.String(30))
 
     def create(self):
         db.session.add(self)
         db.session.commit()
         return self
-    def __init__(self, name, district, password, pNumber):
+    def __init__(self, name, district, password, pNumber, role):
         self.name = name
         self.district = district
         self.password = password
         self.pNumber = pNumber
+        self.role = role
     def __repr__(self):
-        return '<Product %d>' % self.id
+        return '<User %d>' % self.id
 
