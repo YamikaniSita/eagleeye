@@ -1,0 +1,27 @@
+<html>
+    <div class='inline-flex w-full relative'>
+        <i class='fa fa-user border rounded text-green-500 font-bold p-2'></i><span class='font-bold'>Manage Users</span>
+        <a href='#/add-user' class="relative left-2/4 p-2 bg-blue-500 text-white shadow border rounded">Add User <i class='text-gray-400 fa fa-plus'></i></a>
+        <a class="relative left-2/4 mx-4 p-2 text-gray-700 shadow border rounded"><i class='fa fa-search'></i></i></a>
+    </div>
+    <div class="z-500 border rounded shadow w-full p-4 bg-white my-4">
+        <div class="border-b w-full font-bold">
+            System Users
+        </div>
+        <table class="w-full">
+            <tr class='p-4 border-b font-bold text-gray-500'>
+                <td class="font-bold table-cell p-2 text-center">NAME</td>
+                <td class="table-cell p-2 text-center">Status</td>
+                <td class="table-cell p-2 text-center">Role</td>
+                <td class="table-cell p-2 text-center">Action</td>
+            </tr>
+            <tr class='border-b' ng-repeat="user in users">
+                <td class="font-bold table-cell p-2 text-center">{{user.name}}</td>
+                <td class="table-cell p-2 text-center">Active</td>
+                <td class="table-cell p-2 text-center"><div class=''>{{user.role}}</div></td>
+                <td class="table-cell p-2 text-center"><a class="p-2 bg-red-500 text-white shadow border rounded" ng-if="user.role != 'admin_core'">Revoke Access</a></td>
+            </tr>
+            
+        </table>
+    </div>
+</html>

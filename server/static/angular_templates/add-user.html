@@ -1,0 +1,16 @@
+<html>
+    <div class='inline-flex w-full relative'>
+        <i class='fa fa-user border rounded text-green-500 font-bold p-2'></i><span class='font-bold'>Manage Users / Add user</span>
+    </div>
+    <div class="z-500 border rounded shadow w-full p-4 bg-white my-4">
+        <input type="text" ng-model='userName' class="rounded border p-4 w-2/4 block m-4" placeholder="Enter User Name">
+        <input type="text" ng-model='userPn' class="rounded border p-4 w-2/4 block m-4" placeholder="Enter User Phone Number">
+        <input type="password" ng-model='userPassword' class="rounded border p-4 w-2/4 block m-4" placeholder="Enter users chosen password">
+        <select ng-model='userRole' class="rounded border p-4 w-2/4 block m-4">
+            <option value="expert" selected>Disease Expert</option>
+            <option value="admin">Admin</option>
+        </select>
+        <div class='bg-blue-400 text-white p-4 w-1/4 rounded border shadow block m-4 align-center' ng-click='register()'>{{state}}</div>
+        <div class=""><i class='fa fa-info-circle'></i>This role permits: <span class='text-red-500' ng-if="userRole == 'expert'">Add Disease, Edit Disease Information and View Quick Analytics</span>
+        <span class='text-red-500' ng-if="userRole == 'admin'">Manage users, trigger SMS alerts, alter SMS trigger, view app user locations, access full system reports</div>
+    </div>

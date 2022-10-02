@@ -2,9 +2,10 @@ import json
 from urllib import response
 from flask import Flask, request, jsonify, make_response, render_template, redirect
 from flask_marshmallow import Marshmallow
-from models import db, Users
-from schemas import UserSchema
+from models import db, Users, Disease, Symptom, Chemical, Control
+from schemas import ChemicalSchema, ControlSchema, SymptomSchema, UserSchema, DiseaseSchema
 import hashlib
+from sqlalchemy import or_
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///eagleeye.db"
@@ -48,13 +49,12 @@ def getUserProfile(pNumber):
         profile = user
     return make_response(jsonify({'profile':profile}))
     
-# @app.route('/', methods=['GET'])
-# def loadUsers():
-#     get_users = Users.query.all()
-#     print('/')
-#     author_schema = UserSchema(many=True)
-#     users = author_schema.dump(get_users)
-#     return make_response(jsonify({'users': users}))
+@app.route('/app/user-list/', methods=['GET'])
+def loadUsers():
+    get_users = Users.query.filter(Users.role != 'app_user')
+    user_schema = UserSchema(many=True)
+    users = user_schema.dump(get_users)
+    return make_response(jsonify({'users': users}))
 
 @app.route('/app/', methods=['GET'])
 def render_login():
@@ -76,10 +76,62 @@ def auth_admin():
 def render_panel():
     if request.cookies.get('user'):
         user_ = request.cookies.get('user')
-        return render_template('admin_home_main.html')
+        user_details = Users.query.filter_by(name = user_).first()
+        return render_template('admin_home_main.html', user_details = user_details)
     else:
         #loggin
         return redirect('/app/', code=302)
+
+@app.route('/app/add-disease', methods=['POST'])
+def add_disease():
+    data = request.get_json(force = True)
+    disease_schema = DiseaseSchema()
+    disease = disease_schema.load(data)
+    db.session.add(disease)
+    db.session.commit()
+    id = disease.id
+    return make_response(jsonify({"success": True, "id":id}), 200)
+
+@app.route('/app/get-diseases/')
+def get_diseases():
+    get_diseases = Disease.query.all()
+    disease_schema = DiseaseSchema(many = True)
+    diseases = disease_schema.dump(get_diseases)
+    return make_response(jsonify({"diseases":diseases}))
+
+@app.route('/app/fetch_disease', methods = ['POST'])
+def fetch_disease():
+    disease_id = request.get_json(force = True)['id']
+    general_info = DiseaseSchema(many = True).dump(Disease.query.filter_by(id = disease_id))
+    symptoms = SymptomSchema(many=True).dump(Symptom.query.filter_by(disease_id = disease_id))
+    controls = ControlSchema(many = True).dump(Control.query.filter_by(disease_id = disease_id))
+    chemicals = ChemicalSchema(many = True).dump(Chemical.query.filter_by(disease_id = disease_id))
+
+    return make_response(jsonify({"general_information":general_info, "symptoms": symptoms, "controls": controls, "chemicals": chemicals}))
+
+@app.route('/app/add-symptom', methods = ['POST'])
+def add_symptom():
+    req_data = request.get_json(force = True)
+    symptom = SymptomSchema().load(req_data)
+    db.session.add(symptom)
+    db.session.commit()
+    return make_response(jsonify({"lastElement":symptom.id}))
+
+@app.route('/app/add-control', methods = ['POST'])
+def add_control():
+    req_data = request.get_json(force = True)
+    control = ControlSchema().load(req_data)
+    db.session.add(control)
+    db.session.commit()
+    return make_response(jsonify({"lastElement":control.id}))
+
+@app.route('/app/add-chemical', methods = ['POST'])
+def add_chemical():
+    req_data = request.get_json(force = True)
+    chemical = ChemicalSchema().load(req_data)
+    db.session.add(chemical)
+    db.session.commit()
+    return make_response(jsonify({"lastElement":chemical.id}))
 
 
 if __name__ == '__main__':

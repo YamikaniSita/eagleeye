@@ -1,0 +1,76 @@
+<html>
+    <div class='inline-flex w-full relative'>
+        <i class='fa fa-user border rounded text-green-500 font-bold p-2'></i><span class='font-bold'>Diseases / More</span>
+    </div>
+    <div class="z-500 border rounded shadow w-full p-4 bg-white my-4">
+        <div class="border-b w-full font-bold">
+            General Information
+        </div>
+        <table class="w-full">
+            <tr class='p-4 border-b'>
+                <td class="table-cell p-2">{{name}}</td>
+                <td class="table-cell p-2 text-center"><i class='fa fa-edit text-gray-500'></i></td>
+            </tr>
+            <tr class='p-4'>
+                <td class="text-gray-500 table-cell p-2">{{desc}}</td>
+                <td class="table-cell p-2 text-center"><i class='fa fa-edit text-gray-500'></i></td>
+            </tr>
+        </table>
+    </div>
+    <div class="z-500 border rounded shadow w-full p-4 bg-white my-4">
+        <div class="border-b w-full">
+            <span class='font-bold'>Disease Symptoms</span>
+            <a class="float-right underline" ng-click="popElement('popup-symptom')">Add <i class='fa fa-plus'></i></a>
+        </div>
+        <table class="w-full">
+            <tr class='p-4 border-b' ng-repeat="symptom in symptoms">
+                <td class="table-cell p-2">{{symptom.name}}</td>
+                <td class="table-cell p-2 text-center"><i class='fa fa-edit text-gray-500'></i></td>
+                <td class="table-cell p-2 text-center"><i class='fa fa-trash text-gray-500'></i></td>
+            </tr>
+        </table>
+    </div>
+    <div class="z-500 border rounded shadow w-full p-4 bg-white my-4">
+        <div class="border-b w-full">
+            <span class='font-bold'>Disease Controls</span>
+            <a class="float-right underline" ng-click="popElement('popup-control')">Add <i class='fa fa-plus'></i></a>
+        </div>
+        <table class="w-full">
+            <tr class='p-4 border-b' ng-repeat="control in controls">
+                <td class="table-cell p-2">{{control.control}}</td>
+                <td class="table-cell p-2 text-center"><i class='fa fa-edit text-gray-500'></i></td>
+                <td class="table-cell p-2 text-center"><i class='fa fa-trash text-gray-500'></i></td>
+            </tr>
+        </table>
+    </div>
+    <div class="z-500 border rounded shadow w-full p-4 bg-white my-4">
+        <div class="border-b w-full">
+            <span class="font-bold">Chemicals</span>
+            <a class="float-right underline" ng-click="popElement('popup-chemical')">Add <i class='fa fa-plus'></i></a>
+        </div>
+        <table class="w-full">
+            <tr class='p-4 border-b' ng-repeat="chemical in chemicals">
+                <td class="table-cell p-2">{{chemical.chemical_name}}</td>
+                <td class="table-cell p-2">{{chemical.dosage}}</td>
+                <td class="table-cell p-2 text-center"><i class='fa fa-edit text-gray-500'></i></td>
+                <td class="table-cell p-2 text-center"><i class='fa fa-trash text-gray-500'></i></td>
+            </tr>
+        </table>
+    </div>
+    <div class='absolute w-64 p-4 shadow shadow-lg z-100 bg-white rounded top-10 left-1/2 popup-symptom hidden'>
+        <h1 class='text-2xl border-b p-2 text-red-400 my-2'>Add Symptom</h1>
+        <input type='text' ng-model='symptomName' class='w-full border p-2 rounded shadow' placeholder="Enter symptom description"/>
+        <div class='p-2  text-center w-32 rounded shadow my-4 text-white font-bold' style="background: #ffd738;" ng-click="addElement('symptom')">{{command}}</div>
+    </div>
+    <div class='absolute w-64 p-4 shadow shadow-lg z-100 bg-white rounded top-10 left-1/2 popup-control hidden'>
+        <h1 class='text-2xl border-b p-2 text-red-400 my-2'>Add Disease Control</h1>
+        <input type='text' ng-model='controlName' class='w-full border p-2 rounded shadow' placeholder="Enter control description"/>
+        <div class='p-2  text-center w-32 rounded shadow my-4 text-white font-bold' style="background: #ffd738;" ng-click="addElement('control')">{{command}}</div>
+    </div>
+    <div class='absolute w-64 p-4 shadow shadow-lg z-100 bg-white rounded top-10 left-1/2 popup-chemical hidden'>
+        <h1 class='text-2xl border-b p-2 text-red-400 my-2'>Add Applicable Chemical</h1>
+        <input type='text' ng-model='chemicalName' class='w-full border p-2 rounded shadow' placeholder="Enter chemical name or sticker name"/>
+        <input type='text' ng-model='chemicalDosage' class='w-full border p-2 rounded shadow' placeholder="Describe dosage if available"/>
+        <div class='p-2  text-center w-32 rounded shadow my-4 text-white font-bold' style="background: #ffd738;" ng-click="addElement('chemical')">{{command}}</div>
+    </div>
+</html>

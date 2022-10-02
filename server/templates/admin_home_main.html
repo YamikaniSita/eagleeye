@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="adminDashboard">
     <head>
         <title>EagleEye-Panel</title>
         <meta name="format-detection" content="telephone=no">
@@ -9,16 +9,219 @@
         <link href="{{url_for('static', filename='stylesheets/tailwind.css')}}"  rel='stylesheet' type='text/css'/> 
         <script src="{{url_for('static', filename='javascripts/angular/angular.js')}}"></script>
         <script src="{{url_for('static', filename='javascripts/angular/angular-resource.js')}}"></script>
+        <script src="{{url_for('static', filename='javascripts/jquery/jquery.js')}}"></script>
         <script src="{{url_for('static', filename='javascripts/angular/angular-route.js')}}"></script>
+        <link href="{{url_for('static', filename='stylesheets/fontawesome/css/all.min.css')}}"  rel='stylesheet' type='text/css'/> 
     </head>
     <body class="bg-gray-100">
-        <nav class='w-full bg-white p-2 border shadow shadow-2xl'>                
+        <nav class='w-full bg-white p-2 border shadow shadow'>                
             <div class='font-bold p-5 text-3xl text-red-300'>Eagle Eye</div>
             <div class='absolute right-0 top-0 m-6 p-4'>
-                <a href='submissions/' class='m-2 p-2 hover:text-white hover:font-bold hover:bg-red-300 border border-1-white rounded rounded-2 hover:font-extrabold'>Propose Mwambi</a>
-                <a href='#/' class='m-2 p-2 hover:text-white hover:font-bold hover:bg-red-300 border border-1-white rounded rounded-2 font-bold'>Admin Login</a>
+                <a href='#' class='m-2 p-2 text-green-500  rounded rounded-2 font-bold'><i class='border rounded rounded-full fa fa-user p-2 m-2'></i>{{user_details.name}}<span class='mx-2 text-gray-300'>{{user_details.role}}</span></a>
+                <a href='#/' class='m-2 p-2 bg-red-300 border rounded rounded-2 font-bold text-white'>Logout</a>
             </div>
         </nav>
-
+        <div class="w-full h-screen inline-flex">
+            <div class='bg-white border shadow w-1/4 h-screen p-4'>
+                <a href='#/' class='align-center block bg-blue-300 text-white p-2 my-2 rounded'>Quick Analytics</a>
+                <a href='#/users'class='text-gray-600 align-center block my-2 p-2'>System Users</a>
+                <a class='text-gray-600 align-center block my-2 p-2'>SMS alerts</a>
+                <a class='text-gray-600 align-center block my-2 p-2'>Maps</a>
+                <a href='#/diseases' class='text-gray-600 align-center block my-2 p-2'>Disease Information</a>
+            </div>
+            <div class="w-3/4 shadow border ng-view p-4"></div>
+        </div>
     </body>
+    <script>
+        let app = angular.module('adminDashboard', ['ngRoute', 'ngResource'])
+        let url = 'localhost:5000'
+
+        app.config(function($routeProvider){
+            $routeProvider.when('/',{
+                controller: 'quickAnalytics',
+                templateUrl: "{{url_for('static', filename='angular_templates/quick_analytics.html')}}"
+            }).when('/users', {
+                templateUrl: "{{url_for('static', filename='angular_templates/users.html')}}",
+                controller: 'users'
+            }).when('/add-user', {
+                templateUrl: "{{url_for('static', filename='angular_templates/add-user.html')}}",
+                controller: 'addUser'
+            }).when('/diseases', {
+                templateUrl: "{{url_for('static', filename='angular_templates/diseases.html')}}",
+                controller: 'diseases'
+            }).when('/more', {
+                templateUrl: "{{url_for('static', filename='angular_templates/view_disease.html')}}",
+                controller: 'viewDisease'
+            }).otherwise({
+                redirectTo: '/'
+            })
+        })
+
+        app.controller('quickAnalytics', function($scope, $rootScope){
+
+        })
+
+        app.controller('users', function($scope, $http, $rootScope){
+            $scope.users = []
+            $http.get('../user-list').success(function(response){
+                $scope.users  = response['users']
+            }).error(function(error){
+                console.log(error)
+            })
+        })
+
+        app.controller('addUser', function($scope, $rootScope, $http){
+            $scope.state = 'Register'
+            $scope.userRole='expert'
+            $scope.register = function(){
+                $scope.state = 'Wait..'
+                $http.post('../../register', {
+                    name: $scope.userName,
+                    district: 'Mzuzu',
+                    pNumber: $scope.userPn,
+                    password: $scope.userPassword,
+                    role: $scope.userRole
+                }).success(function(response){
+                    console.log(response)
+                    if(response.success){
+                        alert('User added successfully.')
+                        window.location = '#/users'
+                    }
+                }).error(function(err){
+                    $scope.state = 'Register'
+                    alert('ERROR')
+                })
+            }
+        })
+
+        app.controller('diseases', function($scope, $http, $rootScope){
+            $rootScope.editId
+            $scope.command = 'Save'
+            $scope.diseases = []
+            $http.get('../get-diseases/').success(function(response){
+                console.log(response)
+                $scope.diseases = response.diseases
+            })
+
+            $scope.pop = function(){
+                if($('.popup').is(':hidden')){
+                    $('.popup').fadeIn('slow')
+                }
+                else{
+                    $('.popup').hide()
+                }
+            }
+
+            $scope.addDisease = function(){
+                $scope.command = 'Wait..'
+                $http.post('../add-disease', {
+                    name: $scope.diseaseName,
+                    desc: $scope.diseaseDesc
+                }).success(function(response){
+                    if(response.success){
+                        alert('Successful')
+                        $rootScope.editId = response.id
+                        console.log($rootScope.editId)
+                    }   
+                    else{
+                        alert('Operation denied by server')
+                    }
+                }).error(function(error){
+                    alert('Network/server error')
+                    $scope.command = 'Save'
+                })
+            }
+
+            $scope.viewDisease = function(disease){
+                $rootScope.editId = disease.id
+                console.log($rootScope.editId)
+                window.location = '#/more'
+            }
+        })
+
+        app.controller('viewDisease', function($scope, $rootScope, $http){
+            $scope.name = ""
+            $scope.desc = ""
+            $scope.symptoms = []
+            $scope.controls = []
+            $scope.chemicals = []
+            $scope.command = 'Save'
+            if(!$rootScope.editId) window.location = '#/diseases'
+            $http.post('../fetch_disease', {
+                id: $rootScope.editId
+            }).success(function(response){
+                console.log(response)
+                console.log(response.general_information[0]['name'])
+                $scope.name = response.general_information[0]['name']
+                $scope.desc = response.general_information[0].desc
+                $scope.symptoms = response.symptoms
+                $scope.controls = response.controls
+                $scope.chemicals = response.chemicals
+
+            }).error(function(error){
+                window.location = '#/diseases'
+            })
+
+            $scope.popElement = function(classValue){
+                if($('.'+classValue).is(':hidden')){
+                    $('.'+classValue).show()
+                }
+                else{
+                    $('.'+classValue).hide()
+                }
+            }
+
+            $scope.addElement = function(element){
+                if(element === 'symptom'){
+                    $scope.command = 'Wait...'
+                    $http.post('../add-symptom', {
+                        name: $scope.symptomName,
+                        disease_id:  $rootScope.editId
+                    }).success(function(response){
+                        $scope.symptoms.push({"id":response.lastElement, "name":$scope.symptomName, "disease_id":$rootScope.editId})
+                        $scope.symptomName = ""
+                        $scope.command = 'Save'
+                        $('.popup-symptom').hide()
+                        //$scope.symptoms.push(response.lastElement)
+                    }).error(function(err){
+                        $('.popup-symptom').hide()
+                        alert('Saving Failed')
+                    })
+                }
+                else if(element === 'control'){
+                    $scope.command = 'Wait...'
+                    $http.post('../add-control', {
+                        control: $scope.controlName,
+                        disease_id:  $rootScope.editId
+                    }).success(function(response){
+                        $scope.controls.push({"id":response.lastElement, "control":$scope.controlName, "disease_id":$rootScope.editId})
+                        $scope.controlName = ""
+                        $scope.command = 'Save'
+                        $('.popup-control').hide()
+                    }).error(function(err){
+                        $('.popup-control').hide()
+                        alert('Saving Failed')
+                    })
+                }
+                else if(element === 'chemical'){
+                    $scope.command = 'Wait...'
+                    $http.post('../add-chemical', {
+                        chemical_name: $scope.chemicalName,
+                        dosage: $scope.chemicalDosage,
+                        disease_id:  $rootScope.editId
+                    }).success(function(response){
+                        $scope.chemicals.push({"id":response.lastElement, "chemical_name":$scope.chemicalName, "dosage":$scope.chemicalDosage,"disease_id":$rootScope.editId})
+                        $scope.chemicalName = ""
+                        $scope.chemicalDosage = ""
+                        $scope.command = 'Save'
+                        $('.popup-chemical').hide()
+                    }).error(function(err){
+                        $('.popup-chemical').hide()
+                        $scope.command='Save'
+                        alert('Saving Failed')
+                    })
+                }
+            }
+        })
+    </script>
 </html>

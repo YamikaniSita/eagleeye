@@ -1,0 +1,27 @@
+<html>
+    <div class='inline-flex w-full relative'>
+        <i class='fa fa-user border rounded text-green-500 font-bold p-2'></i><span class='font-bold'>Diseases</span>
+        <a href='' class="relative left-2/4 p-2 bg-green-500 text-white shadow border rounded add-disease" ng-click="pop()">Add Disease <i class='text-gray-400 fa fa-plus'></i></a>
+        <a class="relative left-2/4 mx-4 p-2 text-gray-700 shadow border rounded"><i class='fa fa-search'></i></i></a>
+    </div>
+    <div class="z-500 border rounded shadow w-full p-4 bg-white my-4">
+        <table class="w-full">
+            <tr class='p-4 border-b font-bold text-gray-500'>
+                <td class="font-bold table-cell p-2 text-center">Disease Name</td>
+                <td class="font-bold table-cell p-2 text-center">Description</td>
+                <td class="table-cell p-2 text-center">Action</td>
+            </tr>
+            <tr class='border-b my-2' ng-repeat="disease in diseases">
+                <td class="font-bold table-cell p-2 text-center">{{disease.name}}</td>
+                <td class="text-gray-500 table-cell p-2 text-justify">{{disease.desc}}</td>
+                <td class="table-cell p-2 text-center"><a class="p-2 my-2 underline m-4" ng-click="viewDisease(disease)">More</a></td>
+            </tr>
+        </table>
+    </div>
+    <div class='absolute w-64 p-4 shadow shadow-lg z-100 bg-white rounded top-10 left-1/2 popup hidden'>
+        <h1 class='text-2xl border-b p-2 text-red-400 my-2'>Add Disease</h1>
+        <input type='text' ng-model='diseaseName' class='w-full border p-2 rounded shadow' placeholder="Disease Name"/>
+        <label class='text-gray-300'>Describe the disease.</label>
+        <textarea ng-model='diseaseDesc' class='w-full border p-2 rounded shadow'></textarea>
+        <div class='p-2  text-center w-32 rounded shadow my-4 text-white font-bold' style="background: #ffd738;" ng-click='addDisease()'>{{command}}</div>
+    </div>
