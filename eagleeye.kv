@@ -8,20 +8,25 @@ WindowManager:
     KBHomeScreen
     DiseaseScreen
     DiseaseImageScreen
+    CameraScreen
 <SplashScreen>
     name: "Splash"
     Image:
-        source: "logo.jpg"
+        source: "sample.png"
         size_hint_y: 0.4
         size_hint_x: .2
         pos_hint: {'center_y': .7, 'center_x': .5}
     MDLabel:
-        text: "Eagle Eye"
+        text: "EagleEye"
         halign: "center"
         theme_text_color: "Custom"
-        text_color: "red"
+        text_color: "green"
         font_style: "H3"
         pos_hint: {'center_x': 0.5, 'center_y':0.4}
+    MDLabel:
+        text: "{}".format(root.state)
+        halign: "center"
+        pos_hint: {'center_x': 0.5, 'center_y':0.1}
 <LoginScreen>
     name: "login"
     padding: "10dp"
@@ -153,6 +158,7 @@ WindowManager:
             right_action_items: [["cog", lambda x: x], ["account", lambda x: root.switchToProfile()]]
             mode: "center"
             type: "bottom"
+            on_action_button: root.on_enter_camera(self.icon)
     MDCard
         size_hint: None, None
         size: "280dp", "180dp"
@@ -285,3 +291,19 @@ WindowManager:
             icon_left: "magnify"
             id: symptoms
             text_hint: "Enter symptoms you noticed"
+
+<CameraScreen>
+    name: "CameraScreen"
+    Camera:
+        id: camera
+        resolution: (1920, 1080)
+        play: False
+    MDBottomAppBar:
+        MDTopAppBar:
+            icon: "camera"
+            mode: "center"
+            icon_color: 0, 1, 0, 1
+            left_action_items: [["arrow-left", lambda x: root.on_back()]]
+            right_action_items: [["file", lambda x: x]]
+            mode: "center"
+            type: "bottom"

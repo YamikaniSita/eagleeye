@@ -2,10 +2,12 @@ import json
 from urllib import response
 from flask import Flask, request, jsonify, make_response, render_template, redirect
 from flask_marshmallow import Marshmallow
-from models import db, Users, Disease, Symptom, Chemical, Control
-from schemas import ChemicalSchema, ControlSchema, SymptomSchema, UserSchema, DiseaseSchema
+from models import db, Users, Disease, Symptom, Chemical, Control, ChangeLog
+from schemas import ChemicalSchema, ControlSchema, SymptomSchema, UserSchema, DiseaseSchema, ChangeLogSchema
 import hashlib
 from sqlalchemy import or_
+from changelog import ChangeLogManager
+import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///eagleeye.db"
@@ -85,6 +87,11 @@ def render_panel():
 @app.route('/app/add-disease', methods=['POST'])
 def add_disease():
     data = request.get_json(force = True)
+    log_schema = ChangeLogSchema()
+    new_log = log_schema.load(ChangeLogManager().to_change_log_object(type='new_disease', data_object=data))
+    db.session.add(new_log)
+    db.session.commit()
+    # change log committed early to prevent log failure
     disease_schema = DiseaseSchema()
     disease = disease_schema.load(data)
     db.session.add(disease)
@@ -112,6 +119,12 @@ def fetch_disease():
 @app.route('/app/add-symptom', methods = ['POST'])
 def add_symptom():
     req_data = request.get_json(force = True)
+    disease_ = Disease.query.filter_by(id = req_data['disease_id']).first()
+    disease_ = disease_.name
+    log_schema = ChangeLogSchema()
+    new_log = log_schema.load(ChangeLogManager().to_change_log_object(type='new_symptom', data_object={"disease_key":disease_, "name":req_data['name']}))
+    db.session.add(new_log)
+    db.session.commit()
     symptom = SymptomSchema().load(req_data)
     db.session.add(symptom)
     db.session.commit()
@@ -133,6 +146,17 @@ def add_chemical():
     db.session.commit()
     return make_response(jsonify({"lastElement":chemical.id}))
 
+@app.route('/app/reports/brief/')
+def generate_brief_report():
+    app_users = Users.query.filter(Users.role == 'app_user').count()
+    experts = Users.query.filter(Users.role == 'expert').count()
+    admins = Users.query.filter(Users.role == 'admin').count() + 1#admin core is default 1
+    return make_response(jsonify({"admins":admins, "experts":experts, "app_users":app_users, "sms_clients":0, "diagnosis":0, "positives":0, "sms_warnings":0}))
 
+@app.route('/app/changelog/get', methods=['POST'])
+def generate_changelog():
+    app_last_update = datetime.datetime.strptime(request.get_json(force = True)['app_last_update'], "%m/%d/%Y, %H:%M:%S")
+    log = ChangeLogSchema(many=True).dump(ChangeLog.query.filter(ChangeLog.time > app_last_update))
+    return make_response(jsonify({'change_log':log}))
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

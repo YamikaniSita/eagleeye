@@ -1,4 +1,5 @@
 import sqlite3
+import datetime
 
 class DBHandler:
     conn = sqlite3.connect('frontdb.db')
@@ -31,3 +32,13 @@ class DBHandler:
             self.c.execute(query)
             results = self.c.fetchall()
         return results
+    def addDisease(self, name, desc):
+        self.c.execute("INSERT INTO diseases (name, desc) VALUES ('{}', '{}')".format(name, desc))
+        return self.conn.commit()
+    def update_db_version(self, curr):
+        q = "UPDATE db_version SET release_date='{}'".format(datetime.datetime.strftime(curr, "%m/%d/%Y, %H:%M:%S"))
+        self.c.execute(q)
+        return self.conn.commit()
+    def get_db_version(self):
+        self.c.execute("SELECT * FROM db_version")
+        return self.c.fetchone()

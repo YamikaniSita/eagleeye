@@ -1,7 +1,7 @@
 <html>
     <!-- <div class="">Loading</div> -->
     <div class=''>
-        <i class='fa fa-plane border rounded text-green-500 font-bold p-2 my-2'></i><span class='font-bold'>Quick Analytics</span>
+        <i class='fa fa-plane border rounded text-green-500 font-bold p-4 bg-white z-500 shadow my-2 mx-6'></i><span class='font-bold'>Quick Analytics</span>
     </div>
     <div class="z-500 border rounded shadow w-full p-4 bg-white">
         <div class="border-b w-full font-bold">
@@ -9,15 +9,15 @@
         </div>
         <div class='flex flex-wrap w-full'>
             <div class='border w-48 rounded border my-4 p-1 bg-white mx-8'>
-                <div class='border-b text-6xl text-center p-1'>0</div>
+                <div class='border-b text-6xl text-center p-1'>{{brief.app_users}}</div>
                 <div class="p-1">App Users Registered</div>
             </div>
             <div class='border w-48 rounded border my-4 p-1 bg-white mx-8'>
-                <div class='border-b text-6xl text-center p-1'>0</div>
+                <div class='border-b text-6xl text-center p-1'>{{brief.sms_clients}}</div>
                 <div class="p-1">SMS Clients Registered</div>
             </div>
             <div class='border w-48 rounded border my-4 p-1 bg-white mx-8'>
-                <div class='border-b text-6xl text-center p-1'>0</div>
+                <div class='border-b text-6xl text-center p-1'>{{brief.experts}}</div>
                 <div class="p-1">Disease Experts Registered</div>
             </div>
         </div>
@@ -37,15 +37,15 @@
         </div>
         <div class='flex flex-wrap w-full'>
             <div class='border w-48 rounded border my-4 p-1 bg-white mx-8'>
-                <div class='border-b text-6xl text-center p-1'>0</div>
+                <div class='border-b text-6xl text-center p-1'>{{brief.diagnosis}}</div>
                 <div class="p-1">Diagnoses Conducted</div>
             </div>
             <div class='border w-48 rounded border my-4 p-1 bg-white mx-8'>
-                <div class='border-b text-6xl text-center p-1'>0</div>
+                <div class='border-b text-6xl text-center p-1'>{{brief.positives}}</div>
                 <div class="p-1">Positive Cases</div>
             </div>
             <div class='border w-48 rounded border my-4 p-1 bg-white mx-8'>
-                <div class='border-b text-6xl text-center p-1'>0</div>
+                <div class='border-b text-6xl text-center p-1'>{{brief.sms_warnings}}</div>
                 <div class="p-1">SMS Alerts Sent</div>
             </div>
         </div>

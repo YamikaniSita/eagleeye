@@ -1,6 +1,7 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import ForeignKey
+from sqlalchemy.sql import func
 db = SQLAlchemy()
 
 class Users(db.Model):
@@ -96,6 +97,24 @@ class Chemical(db.Model):
 
     def __repr__(self):
         return '<Chemical %d>' % self.id
+
+class ChangeLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(1000))
+    values = db.Column(db.JSON)
+    time = db.Column(db.DateTime, server_default=func.now())
+
+    def create(self):
+        db.session.add(self)
+        db.session.commit()
+        return self
+    
+    def __init__(self, type, values):
+        self.type = type
+        self.values = values
+
+    def __repr__(self):
+        return '<LogNumber %d>' % self.id
 
     
 

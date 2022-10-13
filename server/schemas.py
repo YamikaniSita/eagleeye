@@ -1,5 +1,6 @@
+from sqlite3 import sqlite_version
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from models import db, Users, Disease, Control, Chemical, Symptom
+from models import ChangeLog, db, Users, Disease, Control, Chemical, Symptom
 from marshmallow import fields
 
 
@@ -51,3 +52,13 @@ class ChemicalSchema(SQLAlchemyAutoSchema):
     chemical_name = fields.String(required=True)
     dosage = fields.String(required = False)
     disease_id = fields.Number(required = True)
+
+class ChangeLogSchema(SQLAlchemyAutoSchema):
+    class Meta(SQLAlchemyAutoSchema.Meta):
+        model = ChangeLog
+        sqlite_version = db.session
+        load_instance = True
+    id = fields.Number(dump_only = True)
+    type = fields.String(required = True)
+    values = fields.Dict(required = True)
+    time = fields.DateTime(dump_only = True)

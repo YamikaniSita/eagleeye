@@ -15,8 +15,13 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import BoxLayout
 from kivy.logger import Logger
+import datetime
+from kivy.clock import Clock
+from changelog import Changelog
+
 prev_screen = None
 class SplashScreen(Screen):
+    state = StringProperty('')
     def on_enter(self, *args):
         Logger.info('Loading profile')
         store = JsonStore('user_account.json')
@@ -32,13 +37,32 @@ class SplashScreen(Screen):
         else:
             Logger.info('Profile not found')
             self.userRegistered = False
-        Clock.schedule_once(self.switch, 10)
-    def switch(self, dt):
+        #check changelog updates if connected
+        last_update_time = Changelog().get_last_update_time()
+        params = json.dumps({'app_last_update': last_update_time})
+        headers = {'Content-Type':'application/json'}
+        req = UrlRequest(self.manager.url+'/app/changelog/get', req_body=params, on_success=self.installChangeLog, on_progress=self.progress, on_failure=self.failed, on_error=self.err, timeout=5)
+        print("Network req triggered")
+        # Clock.schedule_once(self.switch, 10)
+    def switch(self):
         store = JsonStore('user_account.json')
         if(self.userRegistered == False):
             self.manager.current = 'login'
         else:
             self.manager.current = 'HomeScreen'
+    def installChangeLog(self, request, result):
+        Logger.info(result)
+        Changelog().install(result['change_log'])
+        self.manager.current = 'HomeScreen'
+    def progress(self, request, current_size, total_size):
+        self.state = "Downloading updates {}%".format((current_size/total_size)*100)
+        Logger.info("{}/{}".format(current_size, total_size))
+    def failed(self, request, result):
+        Logger.info(result)
+        self.switch()
+    def err(self, request, result):
+        Logger.info(result)
+        self.switch()
 class LoginScreen(Screen):
     user_password = ObjectProperty()
     user_phone = ObjectProperty()
@@ -160,6 +184,8 @@ class HomeScreen(Screen):
         Snackbar(text="Location refreshed to {} coordinates: {}. Restart app to reflect.".format(self.district, self.coords)).open()
     def refreshFailed(self):
         Snackbar(text="Couldnt fetch current location. Retry later.").open()
+    def on_enter_camera(self, ic):
+        self.manager.current = "CameraScreen"
 class ProfileScreen(Screen):
     user_district = StringProperty('')
     pNumber = StringProperty()
@@ -266,6 +292,14 @@ class DiseaseImageScreen(Screen):
         self.caption = self.manager.diseaseName
     def on_back(self):
         self.manager.current = "DiseaseScreen"
+
+class CameraScreen(Screen):
+    def on_enter(self):
+        Clock.schedule_once(self.start_camera, .5)
+    def start_camera(self, *largs):
+        self.ids.camera.play = True
+    def on_back(self):
+        self.manager.current = "HomeScreen"
 class Item(OneLineListItem):
     divider = None
 class Content(BoxLayout):
