@@ -1,0 +1,64 @@
+[
+    {
+        "setting_up":{
+            "ch":"Dikilani Pang'ono",
+            "eng":"Setting up..Please wait"
+        },
+        "refresh_locale":{
+            "ch":"Sinthani dela",
+            "eng":"Refresh Location"
+        },
+        "tomato_diseases":{
+            "ch":"Matenda a Tomato",
+            "eng":"Tomato Diseases"
+        },
+        "add_client":{
+            "ch":"Lembasani SMS Client",
+            "eng":"Add SMS Client"
+        },
+        "search_symptoms":{
+            "ch":"Ikani zizindikilo zomwe mwaona, muzisiyanise ndi koma (,)",
+            "eng":"Enter symptoms below seperate multiple by commas (,)"
+        },
+        "search_symptoms_hint":{
+            "ch":"Ikani zizindikilo zomwe mwaona",
+            "eng":"Enter symptoms you noticed"
+        },
+        "diagnosis_result":{
+            "ch":"Zosatila",
+            "eng":"Diagnosis Results"
+        },
+        "view_advice":{
+            "ch":"Onani Langizo",
+            "eng":"View Advice"
+        },
+        "condition_detected":{
+            "ch":"Vuto Tapeza",
+            "eng":"Condition Detected"
+        },
+        "result_confidence":{
+            "ch":"Confidence in result",
+            "eng":"Confidence in result"
+        },
+        "disease_description":{
+            "ch":"Zambiri za nthendayi",
+            "eng":"Disease Description"
+        },
+        "disease_symptoms":{
+            "ch":"Zizindikilo",
+            "eng":"Symptoms"
+        },
+        "disease_controls":{
+            "ch":"Njira zotetezela ku nthendayi",
+            "eng":"Methods to control and prevent infection"
+        },
+        "disease_chemicals":{
+            "ch":"Mankhwala",
+            "eng":"Chemicals"
+        },
+        "language":{
+            "ch":"Chiyankhulo",
+            "eng":"Languages"
+        }
+    }
+]

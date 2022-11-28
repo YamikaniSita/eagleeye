@@ -19,4 +19,21 @@ class ChangeLogManager():
                     "disease_key": data_object['disease_key']
                 }
             }
+        elif type == 'new_control':
+            dict_ = {
+                "type": "new_control",
+                "values": {
+                    "control": data_object['control'],
+                    "disease_key": data_object['disease_key']
+                }
+            }
+        elif type == 'new_chemical':
+            dict_ = {
+                "type":"new_chemical",
+                "values": {
+                    "chemical_name": data_object['chemical_name'],
+                    "dosage": data_object['dosage'],
+                    "disease_key": data_object['disease_key']
+                }
+            }
         return dict_

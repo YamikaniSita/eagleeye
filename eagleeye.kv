@@ -1,14 +1,16 @@
 WindowManager:
     SplashScreen
     LoginScreen
-    RegisterScreen
-    DataPolicyScreen
     HomeScreen
     ProfileScreen
     KBHomeScreen
     DiseaseScreen
     DiseaseImageScreen
     CameraScreen
+    DiagnosisResults
+    AddSMSClient
+    SettingsScreen
+    LanguageSettings
 <SplashScreen>
     name: "Splash"
     Image:
@@ -30,123 +32,17 @@ WindowManager:
 <LoginScreen>
     name: "login"
     padding: "10dp"
-    user_phone: user_pn
-    user_password: user_pw
-    GridLayout
-        cols: 1
-        MDTopAppBar:
-            title:" Eagle Eye"
-            text_color: "white"
-            elavation: 10
-            right_action_items: [["shield", lambda x: root.switchToDataPolicy()]]
-        GridLayout:
-            padding: [100, 10]
-            cols: 1   
-            width: 200
-            orientation: "rl-tb"
-            background_color: 0, 1, 0, 0
-            MDTextField:
-                icon_left: "phone"
-                hint_text: "Phone number"
-                mode: "rectangle"
-                id: user_pn
-                padding: 100
-                required: True
-            MDTextField:
-                icon_left: "key-variant"
-                hint_text: "Password"
-                mode: "rectangle"
-                id: user_pw
-                password: True
-                required: True
-                padding: 20
-    MDRaisedButton:
-        text: "Login"
-        icon: "login"
-        margin: "40"
-        padding: 2
-        markup: True
-        pos_hint: {"center_x": 0.5, "center_y": 0.5}
-        on_press: root.getUserLocation()
-        width: 200
     MDSpinner:
         size_hint: None, None
-        size: dp(26), dp(26)
+        size: dp(36), dp(36)
         pos_hint: {"center_x": 0.5, "center_y": 0.1}
-        active: True if root.busy else False
-    MDTextButton:
-        text: "Register"
+    MDLabel:
+        text: "Setting up..."
+        font_style: "H3"
+        halign: "center"
+        theme_text_color: "Custom"
+        text_color: "green"
         pos_hint: {'center_x': 0.5, 'center_y':0.4}
-        on_press: 
-            root.busy = True
-            root.switchToRegister()
-<RegisterScreen>
-    name: "registerScreen"
-    padding: "10dp"
-    user_name: user_name
-    user_phone: user_phone
-    user_password: user_password
-    GridLayout
-        cols: 1
-        MDTopAppBar:
-            title:" Eagle Eye"
-            text_color: "white"
-            elavation: 10
-            right_action_items: [["shield", lambda x: root.switchToDataPolicy()]]
-        GridLayout:
-            padding: "15dp"
-            cols: 1   
-            MDTextField:
-                width: "100dp"
-                margin: "20dp"
-                hint_text: "Enter your name"
-                mode: "rectangle"
-                id: user_name
-                required: True
-            MDTextField:
-                width: "80dp"
-                margin: "30dp"
-                hint_text: "Enter your phone number"
-                mode: "rectangle"
-                id: user_phone
-                required: True
-            MDTextField:
-                width: "100dp"
-                margin: "30dp"
-                hint_text: "Enter your password"
-                mode: "rectangle"
-                id: user_password
-                password: True
-                required: True
-    MDRaisedButton:
-        text: "Register"
-        icon: "login"
-        margin: "40"
-        padding: 2
-        markup: True
-        pos_hint: {"center_x": 0.5, "center_y": 0.4}
-        on_press: root.getUserLocation()
-        width: 200
-    MDSpinner:
-        size_hint: None, None
-        size: dp(26), dp(26)
-        pos_hint: {"center_x": 0.5, "center_y": 0.3}
-    MDTextButton:
-        text: "Login"
-        pos_hint: {'center_x': 0.5, 'center_y':0.2}
-        on_press: root.switchToLogin()       
-<DataPolicyScreen>
-    name: "DataPolicyScreen"
-    GridLayout:
-        cols: 1
-        MDTopAppBar:
-            title:"Data Protection"
-            text_color: "white"
-            md_text_color: app.theme_cls.primary_light
-            elavation: 10
-            left_action_items: [["arrow-left", lambda x: root.on_back()]]
-        MDLabel:
-            text: "Our Data Protection policy"
 <HomeScreen>
     name: 'HomeScreen'
     MDBottomAppBar:
@@ -155,7 +51,7 @@ WindowManager:
             mode: "center"
             icon_color: 0, 1, 0, 1
             left_action_items: [["menu", lambda x: root.showPopup()], ["school", lambda x: root.switchToKBHome()]]
-            right_action_items: [["cog", lambda x: x], ["account", lambda x: root.switchToProfile()]]
+            right_action_items: [["cog", lambda x: root.switchToSettings()], ["message", lambda x: root.switchToProfile()]]
             mode: "center"
             type: "bottom"
             on_action_button: root.on_enter_camera(self.icon)
@@ -203,7 +99,7 @@ WindowManager:
     GridLayout:
         cols: 1
         MDTopAppBar:
-            title:"Tomato Diseases"
+            title:"{}".format(root.lang_manager.getPrompt("tomato_diseases"))
             text_color: "white"
             md_text_color: app.theme_cls.primary_light
             elavation: 10
@@ -231,7 +127,7 @@ WindowManager:
                 orientation: 'vertical'   
                 padding: 2 
                 MDLabel:
-                    text: "Description"
+                    text: "{}".format(root.lang_manager.getPrompt('disease_description'))
                     font_style: "H4"
                     size_hint_y: None
                     height: self.texture_size[1]
@@ -244,21 +140,21 @@ WindowManager:
                     padding: [2, 1]
                     halign: 'justify'
                 MDLabel:
-                    text: "Symptoms"
+                    text: "{}".format(root.lang_manager.getPrompt('disease_symptoms'))
                     font_style: "H4"
                     size_hint_y: None
                     height: self.texture_size[1]
                 MDList:
                     id: symptoms_list
                 MDLabel:
-                    text: "Methods to control and prevent infection"
+                    text: "{}".format(root.lang_manager.getPrompt('disease_controls'))
                     font_style: "H4"
                     size_hint_y: None
                     height: self.texture_size[1]
                 MDList:
                     id: controls_list
                 MDLabel:
-                    text: "Fungicides"
+                    text: "{}".format(root.lang_manager.getPrompt('disease_chemicals'))
                     font_style: "H4"
                     size_hint_y: None
                     height: self.texture_size[1]
@@ -286,11 +182,11 @@ WindowManager:
         cols: 1
         height:"400dp"
         MDLabel:
-            text: 'Enter symptoms below seperate multiple by commas (,)'        
+            text: "{}".format(root.lang_manager.getPrompt('search_symptoms'))       
         MDTextField:
             icon_left: "magnify"
             id: symptoms
-            text_hint: "Enter symptoms you noticed"
+            text_hint: "{}".format(root.lang_manager.getPrompt('search_symptoms_hint'))   
 
 <CameraScreen>
     name: "CameraScreen"
@@ -298,6 +194,13 @@ WindowManager:
         id: camera
         resolution: (1920, 1080)
         play: False
+        canvas.before:
+            PushMatrix
+            Rotate:
+                angle: -90
+                origin: self.center
+        canvas.after:
+            PopMatrix
     MDBottomAppBar:
         MDTopAppBar:
             icon: "camera"
@@ -307,3 +210,96 @@ WindowManager:
             right_action_items: [["file", lambda x: x]]
             mode: "center"
             type: "bottom"
+            on_action_button: root.capture(self.icon)
+<DiagnosisResults>
+    name:"DiagnosisResults"
+    GridLayout:
+        cols: 1
+        MDTopAppBar:
+            title:"{}".format(root.lang_manager.getPrompt('diagnosis_result'))
+            text_color: "white"
+            md_text_color: app.theme_cls.primary_light
+            elavation: 10
+            left_action_items: [["arrow-left", lambda x: root.on_back()]]
+    BoxLayout:
+        pos_hint: {'center_x': .5, 'center_y':.4}
+        GridLayout
+            cols: 1
+            padding: [3, 1]
+            TwoLineListItem:
+                text: "{}".format(root.lang_manager.getPrompt('condition_detected'))
+                secondary_text: "Late Blight"
+            TwoLineListItem:
+                text: "{}".format(root.lang_manager.getPrompt('result_confidence'))
+                secondary_text: "@ 90%"
+    MDRaisedButton:
+        text: "{}".format(root.lang_manager.getPrompt('view_advice'))
+        margin: "40"
+        padding: 2
+        markup: True
+        pos_hint: {"center_x": 0.5, "center_y": 0.4}
+        width: 200
+        on_press: root.view_disease()
+<AddSMSClient>
+    name: "AddSMSClient"
+    client_name: client_name
+    client_phone: client_phone
+    GridLayout:
+        cols: 1
+        MDTopAppBar:
+            title:"Add SMS Client"
+            text_color: "white"
+            md_text_color: app.theme_cls.primary_light
+            elavation: 10
+            left_action_items: [["arrow-left", lambda x: root.on_back()]]
+        MDTextField:
+            id: client_name
+            hint_text: "Client Name"
+        MDTextField:
+            id: client_phone
+            hint_text: "Client Phone Number"
+        MDRaisedButton:
+            text: "Add Client"
+            margin: "40"
+            padding: 2
+            markup: True
+            pos_hint: {"center_x": 0.5, "center_y": 0.4}
+            width: 200
+            on_press: root.add_sms_client()
+<SettingsScreen>
+    name: "SettingsScreen"
+    MDBoxLayout:
+        orientation: "vertical"
+        MDTopAppBar:
+            title:"Settings"
+            elavation: 10
+            pos_hint: {'top':1.0}
+            left_action_items: [["arrow-left", lambda x: root.on_back()]]
+        BoxLayout:
+            pos_hint: {'center_x': .5, 'center_y':.4}
+            GridLayout
+                cols: 1
+                padding: [3, 1]
+                OneLineListItem:
+                    text: "{}".format(root.lang_manager.getPrompt('language'))        
+                    on_press: root.switchToLanguageSettings()
+<LanguageSettings>
+    name: "LanguageSettings"
+    MDBoxLayout:
+        orientation: "vertical"
+        MDTopAppBar:
+            title: "{}".format(root.lang_manager.getPrompt('language'))    
+            elavation: 10
+            pos_hint: {'top':1.0}
+            left_action_items: [["arrow-left", lambda x: root.on_back()]]
+        BoxLayout:
+            pos_hint: {'center_x': .5, 'center_y':.4}
+            GridLayout
+                cols: 1
+                padding: [3, 1]
+                OneLineListItem:
+                    text: "Chichewa"   
+                    on_press: root.lang_manager.switchLanguage('ch')
+                OneLineListItem:
+                    text: "English"
+                    on_press: root.lang_manager.switchLanguage('eng') 

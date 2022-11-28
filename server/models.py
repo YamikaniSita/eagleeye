@@ -25,6 +25,40 @@ class Users(db.Model):
     def __repr__(self):
         return '<User %d>' % self.id
 
+class AppSessions(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    district = db.Column(db.String(100))
+
+    def create(self):
+        db.session.dd(self)
+        db.session.commit()
+        return self
+
+    def __init__(self, district):
+        self.district = district
+    
+    def __repr__(self):
+        return "<AppSession %d>" % self.id
+
+class SMSClients(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String(1000))
+    district = db.Column(db.String(100))
+    phoneNumber = db.Column(db.String(15))
+
+    def create(self):
+        db.session.add(self)
+        db.session.commit()
+        return self
+    
+    def __init__(self, name, phoneNumber, district):
+        self.name = name
+        self.district = district
+        self.phoneNumber = phoneNumber
+    
+    def __repr__(self):
+        return '<Client %d>' % self.id
+
 class Disease(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
@@ -32,7 +66,7 @@ class Disease(db.Model):
     symptoms = db.relationship("Symptom", backref='disease', cascade = 'all, delete-orphan', lazy = True)
     controls = db.relationship("Control", backref='disease', cascade = 'all, delete-orphan', lazy = True)
     chemicals = db.relationship("Chemical", backref='disease', cascade = 'all, delete-orphan', lazy = True)
-
+    logs = db.relationship("DiseaseLog", backref='disease', cascade = 'all, delete-orphan', lazy = True)
     def create(self):
         db.session.add(self)
         db.session.commit()
@@ -103,7 +137,6 @@ class ChangeLog(db.Model):
     type = db.Column(db.String(1000))
     values = db.Column(db.JSON)
     time = db.Column(db.DateTime, server_default=func.now())
-
     def create(self):
         db.session.add(self)
         db.session.commit()
@@ -115,6 +148,33 @@ class ChangeLog(db.Model):
 
     def __repr__(self):
         return '<LogNumber %d>' % self.id
+
+class DiseaseLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    detection_locale = db.Column(db.String(200))
+    detected_coords = db.Column(db.String(200))
+    triggered_sms = db.Column(db.Integer, default=0)
+    detected_by = db.Column(db.Integer)
+    disease_detected = db.Column(db.Integer, ForeignKey('disease.id'))
+    time = db.Column(db.String(1000))#marshmallow datetime is fucked
+
+    def __create__(self):
+        db.session.add(self)
+        db.session.commit()
+        return self
+
+    def __init__(self, detection_locale, detected_by, disease_detected, detected_coords, time):
+        self.detection_locale = detection_locale
+        self.detected_coords = detected_coords
+        self.detected_by = detected_by
+        self.disease_detected = disease_detected
+        self.time = time
+    
+    def __repr__(self):
+        return '<DiseaseLog %d>' % self.id
+
+
+
 
     
 
