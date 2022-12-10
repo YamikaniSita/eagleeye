@@ -1,6 +1,5 @@
 import sqlite3
 import datetime
-from lang_mananager import LanguageManager
 
 class DBHandler:
     conn = sqlite3.connect('frontdb.db')

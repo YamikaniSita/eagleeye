@@ -30,7 +30,7 @@ WindowManager:
         halign: "center"
         pos_hint: {'center_x': 0.5, 'center_y':0.1}
 <LoginScreen>
-    name: "login"
+    name: "LoginScreen"
     padding: "10dp"
     MDSpinner:
         size_hint: None, None
@@ -190,17 +190,21 @@ WindowManager:
 
 <CameraScreen>
     name: "CameraScreen"
-    Camera:
-        id: camera
-        resolution: (1920, 1080)
-        play: False
-        canvas.before:
-            PushMatrix
-            Rotate:
-                angle: -90
-                origin: self.center
-        canvas.after:
-            PopMatrix
+    MDRelativeLayout:
+        orientation: "vertical"
+        Camera:
+            id: camera
+            resolution: (1920, 1080)
+            play: False
+            canvas.before:
+                PushMatrix
+                Rotate:
+                    angle: -90
+                    origin: self.center
+            canvas.after:
+                PopMatrix
+        Label:
+            text: root.normalized_result
     MDBottomAppBar:
         MDTopAppBar:
             icon: "camera"
@@ -210,7 +214,7 @@ WindowManager:
             right_action_items: [["file", lambda x: x]]
             mode: "center"
             type: "bottom"
-            on_action_button: root.capture(self.icon)
+            on_action_button: root.on_camera_texture(self.icon)
 <DiagnosisResults>
     name:"DiagnosisResults"
     GridLayout:

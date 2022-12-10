@@ -1,5 +1,6 @@
 # -*- coding utf-8 -*-
-from tkinter import Label
+# Yamikani Sita
+# Mzuzu University, ICT Department
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.storage.jsonstore import JsonStore
@@ -18,10 +19,11 @@ from kivymd.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.logger import Logger
 import datetime
-from kivy.clock import Clock
+from kivy.clock import Clock, mainthread
 from changelog import Changelog
 from disease_log import DiseaseLog
 from lang_manager import LanguageManager
+from time import time
 
 prev_screen = None
 class SplashScreen(Screen):
@@ -47,10 +49,11 @@ class SplashScreen(Screen):
         else:
             Logger.info('Profile not found')
             self.userRegistered = False
-    def switch(self):
-        store = JsonStore('user_account.json')
+            Clock.schedule_once(self.switch, 20)
+            # self.switch()
+    def switch(self, *args):
         if(self.userRegistered == False):
-            self.manager.current = 'login'
+            self.manager.current = 'LoginScreen'
         else:
             self.manager.current = 'HomeScreen'
     def installChangeLog(self, request, result):
@@ -63,13 +66,13 @@ class SplashScreen(Screen):
         Logger.info("{}/{}".format(current_size, total_size))
     def failed(self, request, result):
         Logger.info(result)
+
         self.switch()
     def err(self, request, result):
         Logger.info(result)
         self.switch()
 class LoginScreen(Screen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def on_enter(self, *args):
         req = UrlRequest('https://ipinfo.io/json?token=39895a94007e4d', on_success=self.loginUser, on_progress=self.progress, on_failure=self.failed)
         Logger.info('Attempting to connect to IpInfo')
     def loginUser(self, req, response):
@@ -88,7 +91,7 @@ class LoginScreen(Screen):
             store.put('user_profile', coords=self.coords, district=self.district, session_id = session_id, lang = 'eng')
             self.manager.current = 'HomeScreen'
         else:
-            Snackbar(text="Setup failed for unknown reason retry.").open()
+            Snackbar(text="Setup failed for unknown reason...retry.").open()
     def failed(self, req, err):
         Snackbar(text="Network/server error").open()
     def progress(self, request, current_size, total_size):
@@ -265,8 +268,10 @@ class DiseaseImageScreen(Screen):
         self.manager.current = "DiseaseScreen"
 
 class CameraScreen(Screen):
+    #crashes on PC
     lessons = []
     current_lesson = 0
+    normalized_result = StringProperty("")
     def on_enter(self):
         Clock.schedule_once(self.start_camera, .5)
         self.lessons = ["For more accurate diagnosis place the suspected leaf on a surface with same colour.", "Only capture a single leaf at a time for better accuracy", "Please place the camera above the leaf and capture the entire leaf and make sure there are no foreign objects in camera view."]
@@ -289,10 +294,44 @@ class CameraScreen(Screen):
             self.dialog.dismiss()
     def start_camera(self, *largs):
         self.ids.camera.play = True
+        from tflwrapper.tfl_android import TFLWrapperAndroid
+        self.tflite = TFLWrapperAndroid(
+            "data/pba_quantized/model.tflite",
+            "data/pba_quantized/labels.txt",
+            on_detect=self.on_tflite_detect)
+
     def on_back(self):
         self.manager.current = "HomeScreen"
-    def capture(self, ic):
-        self.manager.current = "DiagnosisResults"
+    def on_camera_texture(self, ic):
+        # self.manager.current = "DiagnosisResults"
+        # camera = self.root.ids.camera._camera
+        camera = self.ids.camera._camera
+        pixels = camera._fbo.pixels
+        w, h = camera.resolution
+
+    @mainthread
+    def on_tflite_detect(self, result):
+        print(result)
+        self.result = result
+        labels = self.tflite.get_labels_with_value(result)
+        textresult = []
+        for label, value in labels:
+            text = f"{value:.05f}: {label}"
+            if value > .8:
+                text = f"[color=44FF44]{text}[/color]"
+                print(value, label)
+            else:
+                text = f"[color=FF4444]{text}[/color]"
+            textresult.append(text)
+        self.normalized_result = "\n".join(textresult)
+
+    def detect(self, *largs):
+        timer = time()
+        camera = self.ids.camera._camera
+        w, h = camera.resolution
+        pixels = camera._fbo.pixels
+        self.result = self.tfl.detect(pixels, w, h)
+
 class DiagnosisResults(Screen):
     lang_manager = LanguageManager()
     def on_back(self):
