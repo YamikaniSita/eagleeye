@@ -10,10 +10,10 @@ package.name = eagleeye
 package.domain = com.eagleeye
 
 # (str) Source code where the main.py live
-source.dir = /content/res
+source.dir = /content/front
 
 # (list) Source files to include (let empty to include all the files)
-source.include_exts = py,png,jpg,kv,atlas,db
+source.include_exts = py,png,jpg,kv,atlas,db,tflite,txt,json
 
 # (list) List of inclusions using pattern matching
 #source.include_patterns = assets/*,images/*.png
@@ -37,7 +37,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,kivymd,sqlite3,pillow
+requirements = python3,kivy,kivymd,sqlite3,pillow,pyjnius==master
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -134,7 +134,7 @@ android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,CAME
 # agreements. This is intended for automation only. If set to False,
 # the default, you will be shown the license when first running
 # buildozer.
-# android.accept_sdk_license = False
+android.accept_sdk_license = True
 
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.kivy.android.PythonActivity
@@ -188,7 +188,7 @@ android.permissions = INTERNET,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,CAME
 
 # (list) Gradle dependencies to add
 #android.gradle_dependencies =
-
+android.gradle_dependencies = 'org.tensorflow:tensorflow-lite:2.6.0','org.tensorflow:tensorflow-lite-support:0.0.0-nightly-SNAPSHOT'
 # (bool) Enable AndroidX support. Enable when 'android.gradle_dependencies'
 # contains an 'androidx' package, or any package from Kotlin source.
 # android.enable_androidx requires android.api >= 28

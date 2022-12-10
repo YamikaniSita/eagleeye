@@ -34,8 +34,8 @@ class SplashScreen(Screen):
         # store.delete('user_profile')
         #127 for local runs, 192 for LAN comment out the idle one
 
-        self.manager.url = 'http://127.0.0.1:5000'
-        # self.manager.url = 'http://192.168.43.230:5000'
+        # self.manager.url = 'http://127.0.0.1:5000'
+        self.manager.url = 'http://192.168.43.230:5000'
 
         if(store.exists('user_profile')):
             Logger.info('Profile Found')
@@ -308,6 +308,7 @@ class CameraScreen(Screen):
         camera = self.ids.camera._camera
         pixels = camera._fbo.pixels
         w, h = camera.resolution
+        self.tflite.async_detect(pixels, w, h)
 
     @mainthread
     def on_tflite_detect(self, result):
