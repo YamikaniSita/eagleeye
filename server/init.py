@@ -103,7 +103,7 @@ def add_disease():
 
 @app.route('/app/get-diseases/')
 def get_diseases():
-    get_diseases = Disease.query.all()
+    get_diseases = Disease.query.filter(Disease.name != 'Healthy')
     disease_schema = DiseaseSchema(many = True)
     diseases = disease_schema.dump(get_diseases)
     return make_response(jsonify({"diseases":diseases}))
@@ -165,7 +165,11 @@ def generate_brief_report():
     app_users = Users.query.filter(Users.role == 'app_user').count()
     experts = Users.query.filter(Users.role == 'expert').count()
     admins = Users.query.filter(Users.role == 'admin').count() + 1#admin core is default 1
-    return make_response(jsonify({"admins":admins, "experts":experts, "app_users":app_users, "sms_clients":0, "diagnosis":0, "positives":0, "sms_warnings":0}))
+    total_diagnosis = len(DiseaseLog.query.all())
+    positive_cases = DiseaseLog.query.filter(DiseaseLog.disease_detected != 7).count() #Healthy
+    sms_warnings = DiseaseLog.query.filter(DiseaseLog.triggered_sms == 1).count()
+    sms_clients = len(SMSClients.query.all())
+    return make_response(jsonify({"admins":admins, "experts":experts, "app_users":app_users, "sms_clients":sms_clients, "diagnosis":total_diagnosis, "positives":positive_cases, "sms_warnings":sms_warnings}))
 
 @app.route('/app/changelog/get', methods=['POST'])
 def generate_changelog():

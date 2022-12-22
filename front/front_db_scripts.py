@@ -1,12 +1,26 @@
 import sqlite3
 import datetime
+from kivymd.uix.snackbar import Snackbar
+
 
 class DBHandler:
     conn = sqlite3.connect('frontdb.db')
     c = conn.cursor()
-    def getDiseaseList(self):
-        self.c.execute("SELECT * FROM diseases")
-        records = self.c.fetchall()
+    def getDiseaseList(self, user_lang):
+        records = []
+        if user_lang == 'ch':
+            self.c.execute("SELECT _id, name_ch FROM diseases WHERE name != 'Healthy' AND langs = 'eng,ch'")
+            records = self.c.fetchall()
+            self.c.execute("SELECT _id, name FROM diseases WHERE name != 'Healthy' AND langs = 'eng'")
+            b = self.c.fetchall()
+            if len(b) > 0:
+                # some diseases not translated yet
+                Snackbar(text="Matenda ena sanamasulilidwe mu Chichewa.").open()
+                records = self.append_results(records, b)
+        elif user_lang == 'eng':
+            self.c.execute("SELECT _id, name FROM diseases WHERE name != 'Healthy'")
+            records = self.c.fetchall()
+        print(records)
         return records
     def getDiseaseInfo(self, id):
         self.c.execute("SELECT * FROM diseases WHERE _id = {}".format(id))
@@ -32,8 +46,8 @@ class DBHandler:
             self.c.execute(query)
             results = self.c.fetchall()
         return results
-    def addDisease(self, name, desc):
-        self.c.execute("INSERT INTO diseases (name, desc) VALUES ('{}', '{}')".format(name, desc))
+    def addDisease(self, name, desc, name_ch, desc_ch, langs):
+        self.c.execute("INSERT INTO diseases (name, desc, name_ch, desc_ch, langs) VALUES ('{}', '{}', '{}', '{}', '{}')".format(name, desc, name_ch, desc_ch, langs))
         return self.conn.commit()
     def update_db_version(self, curr):
         q = "UPDATE db_version SET release_date='{}'".format(datetime.datetime.strftime(curr, "%m/%d/%Y, %H:%M:%S"))
@@ -76,10 +90,21 @@ class DBHandler:
             self.conn.commit()
             r = False
         return r
-    def saveLog(self, session_id, coords, diseaseName, district, time):
+    def saveLog(self, session_id, coords, diseaseLabel, district, time):
+        q = "SELECT name,_id FROM diseases"
+        self.c.execute(q)
+        res = self.c.fetchall()
+        min = {'disease': res[0][0], 'id':res[0][1], 'distance': self.lev_distance(diseaseLabel, res[0][0])}
+        for i in range(1, len(res)):
+            distance = self.lev_distance(diseaseLabel, res[i][0])
+            if distance < min["distance"]:
+                min["disease"] = res[i][0]
+                min["distance"] = distance
+                min["id"] = res[i][1]
+        diseaseName = min["disease"]
         q = "INSERT INTO local_disease_logs(disease_name, detected_time, detected_at, detected_by, detected_at_coords) VALUES ('{}', '{}', '{}', '{}', '{}')".format(diseaseName, datetime.datetime.strftime(time, "%m/%d/%Y, %H:%M:%S"), district, session_id, coords)
         self.c.execute(q)
-        return self.conn.commit()
+        return min
     def loadLogs(self, filter):
         q = "SELECT * FROM local_disease_logs"
         if filter == True:
@@ -88,7 +113,35 @@ class DBHandler:
         print(q)
         return self.c.fetchall()
     def clearPending(self):
-        # q = "UPDATE local_disease_logs SET uploaded = 1"
-        # self.c.execute(q)
-        # return self.conn.commit()
-        return  True
+        print('clear_pointP2')
+        q = "UPDATE local_disease_logs SET uploaded = 1"
+        self.c.execute(q)
+        return self.conn.commit()
+    
+        # db utility functions
+    def lev_distance(self, a, b):
+        #to reader: This is just a way to get this to work..its overkill I know.
+        matrix = [[0 for i in range(len(b) + 1)] for j in range(len(a) + 1)]
+        for i in range(len(a) + 1):
+            matrix[i][0] = i
+        for j in range(len(b) + 1):
+            matrix[0][j] = j
+        for i in range(1, len(a) + 1):
+            for j in range(1, len(b) + 1):
+                if a[i-1] == b[j-1]:
+                    matrix[i][j] = matrix[i - 1][j - 1]
+                else:
+                    matrix[i][j] = min(
+                        matrix[i - 1][j] + 1,
+                        matrix[i][j - 1] + 1,
+                        matrix[i - 1][j - 1] + 1
+                )
+        return matrix[len(a)][len(b)]
+    
+    def append_results(self, a, b):
+        c = []
+        for i in a:
+            c.append(i)
+        for i in b:
+            c.append(i)
+        return c

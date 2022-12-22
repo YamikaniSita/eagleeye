@@ -117,14 +117,17 @@
             $('.list-item').css('background', 'white')
             $('#kb').css('background', '#0000dd')
             $rootScope.editId
-            $scope.command = 'Save'
+            $scope.command = 'Next'
             $scope.diseases = []
+            $scope.lang = 'English'
+            $scope.params = null
             $http.get('../get-diseases/').success(function(response){
                 console.log(response)
                 $scope.diseases = response.diseases
             })
 
             $scope.pop = function(){
+                $scope.lang = 'English'
                 if($('.popup').is(':hidden')){
                     $('.popup').fadeIn('slow')
                 }
@@ -134,11 +137,34 @@
             }
 
             $scope.addDisease = function(){
+                $scope.lang = 'Chichewa'
+                if($scope.command == 'Next'){
+                    // chichewa screen
+                    $scope.command = 'Save'
+                    $scope.params = {
+                        name: $scope.diseaseName, 
+                        desc: $scope.diseaseDesc,
+                        langs: 'eng'
+                    }
+                    $scope.diseaseName = ''
+                    $scope.diseaseDesc = ''
+                }
+                else if($scope.command == 'Save'){
+                    $scope.params.name_ch = $scope.diseaseName
+                    $scope.params.desc_ch = $scope.diseaseDesc
+                    $scope.params.langs = 'eng,ch'
+                    $scope.saveDisease()
+                }
+            }
+            $scope.skip = function(){
+                $scope.params.name_ch = ""
+                $scope.params.desc_ch = "" 
+                $scope.saveDisease()
+            }
+            $scope.saveDisease = function(){
+                console.log($scope.params)
                 $scope.command = 'Wait..'
-                $http.post('../add-disease', {
-                    name: $scope.diseaseName,
-                    desc: $scope.diseaseDesc
-                }).success(function(response){
+                $http.post('../add-disease', $scope.params).success(function(response){
                     if(response.success){
                         alert('Successful')
                         $rootScope.editId = response.id
@@ -152,7 +178,6 @@
                     $scope.command = 'Save'
                 })
             }
-
             $scope.viewDisease = function(disease){
                 $rootScope.editId = disease.id
                 console.log($rootScope.editId)

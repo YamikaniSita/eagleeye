@@ -24,6 +24,7 @@ from changelog import Changelog
 from disease_log import DiseaseLog
 from lang_manager import LanguageManager
 from time import time
+import math
 
 prev_screen = None
 class SplashScreen(Screen):
@@ -115,8 +116,10 @@ class HomeScreen(Screen):
         if(len(pending_logs) > 0):
             # uplooad
             params = json.dumps({'logs': pending_logs})
-            req = UrlRequest(self.manager.url+'/logs/add', req_body=params, on_success=d_log.clearPending, timeout=30)
+            req = UrlRequest(self.manager.url+'/logs/add', req_body=params, on_success=self.clearPending, timeout=30)
             print("Network req triggered logs")
+    def clearPending(self, req, response):
+        DBHandler().clearPending()
     def success(self, req, response):
         self.temp = str(int(response['main']['temp']))+u"\u00B0C"
     def failed(self, req, error):
@@ -146,10 +149,9 @@ class HomeScreen(Screen):
         self.coords = response['loc']
         self.district = response['city']
         store = JsonStore('user_account.json')
-        pNumber = store['user_profile']['pNumber']
         lang = store['user_profile']['lang']
         session_id = store['user_profile']['session_id']
-        store.put('user_profile', coords=self.coords, district=self.district, pNumber=pNumber, lang=lang, session_id=session_id)
+        store.put('user_profile', coords=self.coords, district=self.district, lang=lang, session_id=session_id)
         Snackbar(text="Location refreshed to {} coordinates: {}. Restart app to reflect.".format(self.district, self.coords)).open()
     def refreshFailed(self):
         Snackbar(text="Couldnt fetch current location. Retry later.").open()
@@ -182,7 +184,7 @@ class KBHomeScreen(Screen):
     lang_manager = LanguageManager()
     def on_enter(self, *args):
         self.ids.container.clear_widgets()
-        res = DBHandler().getDiseaseList()
+        res = DBHandler().getDiseaseList(self.lang_manager.getUserLanguage())
         for x in range(len(res)):
             text = res[x][1]
             id = res[x][0]
@@ -315,17 +317,20 @@ class CameraScreen(Screen):
         print(result)
         self.result = result
         labels = self.tflite.get_labels_with_value(result)
-        textresult = []
+        top_label = None
+        top_conf_ = None
         for label, value in labels:
-            text = f"{value:.05f}: {label}"
             if value > .8:
-                text = f"[color=44FF44]{text}[/color]"
-                print(value, label)
-            else:
-                text = f"[color=FF4444]{text}[/color]"
-            textresult.append(text)
-        self.normalized_result = "\n".join(textresult)
-
+                top_conf_ = value
+                top_label = label
+        if top_label is None:
+            Snackbar(text="No object detected in picture. Retake image.").open()
+        elif top_label == "Others":
+            Snackbar(text="Image has no tomato leaf. Please retake.").open()
+        else:
+            self.manager.detected_label = top_label
+            self.manager.detected_conf_ = top_conf_
+            self.manager.current = "DiagnosisResults"
     def detect(self, *largs):
         timer = time()
         camera = self.ids.camera._camera
@@ -335,11 +340,18 @@ class CameraScreen(Screen):
 
 class DiagnosisResults(Screen):
     lang_manager = LanguageManager()
+    detected_label = StringProperty("")
+    detected_conf_ = StringProperty("")
+    disease_= None
+    def on_enter(self):
+        self.detected_label = self.manager.detected_label
+        self.detected_conf_ = str(math.ceil(self.manager.detected_conf_*100))
+        self.disease_ = DiseaseLog().addToLog(self, self.detected_label)
     def on_back(self):
         self.manager.current = "HomeScreen"
     def view_disease(self):
-        self.manager.disease_id = 1
-        self.manager.disease_name = "Late Blight"
+        self.manager.disease_id = self.disease_["id"]
+        self.manager.disease_name = self.disease_["disease"]
         self.manager.current = "DiseaseScreen"  
 
 class AddSMSClient(Screen):

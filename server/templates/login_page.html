@@ -29,7 +29,7 @@
             $scope.prompt = $scope.state = 'Login'
             $scope.login = function(){
                 $scope.state = 'Authenticating..'
-                $http.post('auth-admin/', {
+                $http.post('login/', {
                     userName: $scope.userName,
                     userPassword: $scope.userPassword
                 }).success(function(response){

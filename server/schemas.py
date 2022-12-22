@@ -42,6 +42,9 @@ class DiseaseSchema(SQLAlchemyAutoSchema):
     id = fields.Number(dump_only=True)
     name = fields.String(required=True)
     desc = fields.String(required=True)
+    name_ch = fields.String(required=False)
+    desc_ch = fields.String(required=False)
+    langs = fields.String(required=False)
 
 class SymptomSchema(SQLAlchemyAutoSchema):
     class Meta(SQLAlchemyAutoSchema.Meta):

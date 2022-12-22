@@ -232,10 +232,10 @@ WindowManager:
             padding: [3, 1]
             TwoLineListItem:
                 text: "{}".format(root.lang_manager.getPrompt('condition_detected'))
-                secondary_text: "Late Blight"
+                secondary_text: "{}".format(root.detected_label)
             TwoLineListItem:
                 text: "{}".format(root.lang_manager.getPrompt('result_confidence'))
-                secondary_text: "@ 90%"
+                secondary_text: "@ {}%".format(root.detected_conf_)
     MDRaisedButton:
         text: "{}".format(root.lang_manager.getPrompt('view_advice'))
         margin: "40"

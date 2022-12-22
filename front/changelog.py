@@ -8,7 +8,10 @@ class Changelog:
             if el['type'] == 'new_disease':
                 name = el['values']['name']
                 desc = el['values']['desc']
-                print(DBHandler().addDisease(name, desc))
+                name_ch = el['values']['name_ch']
+                desc_ch = el['values']['desc_ch']
+                langs = el['values']['langs']
+                print(DBHandler().addDisease(name, desc, name_ch, desc_ch, langs))
             elif el['type'] == 'new_symptom':
                 new_symptom = el['values']['name']
                 disease_name = el['values']['disease_key']

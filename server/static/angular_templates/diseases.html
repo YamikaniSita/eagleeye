@@ -11,16 +11,20 @@
                 <td class="table-cell p-2 text-center">Action</td>
             </tr>
             <tr class='border-b my-2' ng-repeat="disease in diseases">
-                <td class="font-bold table-cell p-2 text-center">{{disease.name}}</td>
+                <td class="font-bold table-cell p-2 text-center">{{disease.name}} <span class='text-gray-400' ng-if="disease.langs == 'eng,ch'">/ {{disease.name_ch}}</span></td>
                 <td class="text-gray-500 table-cell p-2 text-justify">{{disease.desc}}</td>
                 <td class="table-cell p-2 text-center"><a class="p-2 my-2 underline m-4" ng-click="viewDisease(disease)">More</a></td>
             </tr>
         </table>
     </div>
-    <div class='absolute w-64 p-4 shadow shadow-lg z-100 bg-white rounded top-10 left-1/2 popup hidden'>
+    <div class='absolute w-1/4 p-4 shadow shadow-lg z-100 bg-white rounded top-10 left-1/2 popup hidden'>
         <h1 class='text-2xl border-b p-2 text-red-400 my-2'>Add Disease</h1>
+        <div class='border rounded bg-gray-300 text-white p-2 '>{{lang}}</div>
         <input type='text' ng-model='diseaseName' class='w-full border p-2 rounded shadow' placeholder="Disease Name"/>
         <label class='text-gray-300'>Describe the disease.</label>
         <textarea ng-model='diseaseDesc' class='w-full border p-2 rounded shadow'></textarea>
-        <div class='p-2  text-center w-32 rounded shadow my-4 text-white font-bold' style="background: #ffd738;" ng-click='addDisease()'>{{command}}</div>
+        <div class='inline-flex'>
+            <div class='p-2  text-center w-32 rounded shadow my-4 text-white font-bold' style="background: #38ff7a;" ng-click='addDisease()'>{{command}}</div>
+            <div class='p-2  text-center w-32 rounded shadow my-4 text-white mx-8' style="background: #ff4f38;" ng-click='skip()' ng-if="lang == 'Chichewa'">Skip</div>
+        </div>
     </div>

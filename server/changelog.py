@@ -7,7 +7,10 @@ class ChangeLogManager():
                 "type": "new_disease",
                 "values" : {
                     "name":data_object['name'],
-                    "desc":data_object['desc']
+                    "desc":data_object['desc'],
+                    "name_ch":data_object['name_ch'],
+                    "desc_ch":data_object['desc_ch'],
+                    "langs": data_object['langs']
                 }
             }
             return dict_

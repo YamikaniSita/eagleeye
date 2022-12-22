@@ -63,6 +63,9 @@ class Disease(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     desc = db.Column(db.String(500))
+    name_ch = db.Column(db.String(500))
+    desc_ch = db.Column(db.String(500))
+    langs = db.Column(db.String(50))
     symptoms = db.relationship("Symptom", backref='disease', cascade = 'all, delete-orphan', lazy = True)
     controls = db.relationship("Control", backref='disease', cascade = 'all, delete-orphan', lazy = True)
     chemicals = db.relationship("Chemical", backref='disease', cascade = 'all, delete-orphan', lazy = True)
@@ -72,9 +75,12 @@ class Disease(db.Model):
         db.session.commit()
         return self
 
-    def __init__(self, name, desc):
+    def __init__(self, name, desc, name_ch = "", desc_ch="", langs="eng"):
         self.name = name
         self.desc = desc
+        self.name_ch = name_ch
+        self.desc_ch = desc_ch
+        self.langs = langs
 
     def __repr__(self):
         return '<Disease %d>' % self.id
