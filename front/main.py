@@ -25,6 +25,7 @@ from disease_log import DiseaseLog
 from lang_manager import LanguageManager
 from time import time
 import math
+from plyer import sms                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
 prev_screen = None
 class SplashScreen(Screen):
@@ -121,6 +122,7 @@ class HomeScreen(Screen):
     def clearPending(self, req, response):
         DBHandler().clearPending()
     def success(self, req, response):
+        print(response)
         self.temp = str(int(response['main']['temp']))+u"\u00B0C"
     def failed(self, req, error):
         print(error)
@@ -159,6 +161,8 @@ class HomeScreen(Screen):
         self.manager.current = "CameraScreen"
     def switchToSettings(self):
         self.manager.current = "SettingsScreen"
+    def goToWeather(self):
+        self.manager.current = "WeatherScreen"
         
 class ProfileScreen(Screen):
     user_district = StringProperty('')
@@ -234,9 +238,10 @@ class DiseaseScreen(Screen):
         info = self.db.getDiseaseInfo(self.manager.disease_id)
         self.diseaseDesc = info[0][2]
         self.manager.imageSource = info[0][3]
+        avail_langs = info[0][6]
         self.manager.diseaseName = self.diseaseName
-        symptoms = self.db.getDiseaseSymptoms(self.manager.disease_id)
-        controls = self.db.getDiseaseControls(self.manager.disease_id)
+        symptoms = self.db.getDiseaseSymptoms(self.manager.disease_id, avail_langs)
+        controls = self.db.getDiseaseControls(self.manager.disease_id, avail_langs)
         chemicals = self.db.getDiseaseChemicals(self.manager.disease_id)
         self.ids.symptoms_list.clear_widgets()
         self.ids.controls_list.clear_widgets()
@@ -342,22 +347,32 @@ class DiagnosisResults(Screen):
     lang_manager = LanguageManager()
     detected_label = StringProperty("")
     detected_conf_ = StringProperty("")
+    command = StringProperty("View Diagnosis")
+
     disease_= None
     def on_enter(self):
         self.detected_label = self.manager.detected_label
+        if self.detected_label == 'Healthy':
+            self.command = "Go To Home"
         self.detected_conf_ = str(math.ceil(self.manager.detected_conf_*100))
-        self.disease_ = DiseaseLog().addToLog(self, self.detected_label)
+        self.disease_ = DiseaseLog().addToLog(self.detected_label)
     def on_back(self):
         self.manager.current = "HomeScreen"
     def view_disease(self):
-        self.manager.disease_id = self.disease_["id"]
-        self.manager.disease_name = self.disease_["disease"]
-        self.manager.current = "DiseaseScreen"  
+        if self.detected_label == 'Healthy':
+            self.manager.current = "HomeScreen"
+        else:
+            self.manager.disease_id = self.disease_["id"]
+            self.manager.disease_name = self.disease_["disease"]
+            self.manager.current = "DiseaseScreen"  
 
 class AddSMSClient(Screen):
     client_name = ObjectProperty()
     client_phone = ObjectProperty()
-
+    def on_enter(self):
+        recipient = "0994437644"
+        message = "Hey Beautiful, your boyfriend loves you."
+        sms.send(recipient = recipient, message = message)
     def add_sms_client(self):
         client_name = self.client_name.text
         client_phone = self.client_phone.text
@@ -382,6 +397,10 @@ class LanguageSettings(Screen):
     lang_manager = LanguageManager()
     def on_back(self):
         self.manager.current = "SettingsScreen"
+
+class WeatherScreen(Screen):
+    pass
+
 
 class Item(OneLineListItem):
     divider = None

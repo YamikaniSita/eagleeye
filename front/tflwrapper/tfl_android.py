@@ -2,7 +2,7 @@ from jnius import autoclass, cast
 from PIL import Image
 import os
 import threading
-
+import numpy as np
 
 File = autoclass("java.io.File")
 Interpreter = autoclass("org.tensorflow.lite.Interpreter")
@@ -103,20 +103,23 @@ class TFLWrapperAndroid(TFLWrapper):
 
         # use pillow
         image = Image.frombytes("RGBA", (cw, ch), frame, "raw")
-        left = (cw - cropsize) / 2
-        top = (ch - cropsize) / 2
-        image = image.crop((left, top, left + cropsize, top + cropsize))
+        # left = (cw - cropsize) / 2
+        # top = (ch - cropsize) / 2
+        # image = image.crop((left, top, left + cropsize, top + cropsize))
         image = image.resize((self.imgwidth, self.imgheight))
         image = image.convert("RGB")
-        pixels = image.tobytes()
-
+        pixels = np.array(image)
+        pixels = pixels.astype(np.float32)
+        pixels = pixels.tobytes()
+        
         buffer = ByteBuffer.wrap(pixels)
         self.tflite.run(buffer, self.outputProbabilityBuffer.getBuffer().rewind())
         result = self.outputProbabilityBuffer.getFloatArray()
+        print(result)
         return result
 
     def get_labels_with_value(self, result):
         unsorted_labels = [(
-            self.labels[index], value / 255
+            self.labels[index], value
         ) for index, value in enumerate(result)]
         return list(sorted(unsorted_labels, key=lambda x: x[1], reverse=True))

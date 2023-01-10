@@ -12,9 +12,19 @@
         <script src="{{url_for('static', filename='javascripts/jquery/jquery.js')}}"></script>
         <script src="{{url_for('static', filename='javascripts/angular/angular-route.js')}}"></script>
         <link href="{{url_for('static', filename='stylesheets/fontawesome/css/all.min.css')}}"  rel='stylesheet' type='text/css'/> 
+        <style>
+            @media print {
+                .no-print{
+                    display: none !important
+                }
+                .only-print{
+                    display: block;
+                }
+            }
+        </style>
     </head>
     <body class="bg-gray-200">
-        <nav class='w-full bg-white p-2 border shadow shadow'>                
+        <nav class='no-print w-full bg-white p-2 border shadow shadow'>                
             <div class='inline-flex'>
                 <img  class='w-32 h-24' src="{{url_for('static', filename='a54a65a8caeb42baf0f6a9e39a4bb6b7.png')}}"/>
                 <div class=' font-bold text-3xl text-black text-green-500 my-8'>EagleEye</div>
@@ -30,7 +40,7 @@
             </div>
         </nav>
         <div class="w-full h-screen inline-flex">
-            <div class='bg-white border shadow w-1/4 h-screen p-4'>
+            <div class='bg-white border shadow w-1/4 h-screen p-4 no-print'>
                 <a href='#/' class='align-center block p-2 my-2 rounded list-item rounded' id="qa">Quick Analytics</a>
                 <a href='#/users'class='text-gray-600 align-center block my-2 p-2 list-item rounded' id="user">System Users</a>
                 <a class='text-gray-600 align-center block my-2 p-2 list-item rounded' id="sms">SMS alerts</a>
@@ -60,6 +70,12 @@
             }).when('/more', {
                 templateUrl: "{{url_for('static', filename='angular_templates/view_disease.html')}}",
                 controller: 'viewDisease'
+            }).when('/full-report', {
+                templateUrl: "{{url_for('static', filename='angular_templates/report_query.html')}}",
+                controller: 'reportQuery'
+            }).when('/report', {
+                templateUrl: "{{url_for('static', filename='angular_templates/report.html')}}",
+                controller: "report"
             }).otherwise({
                 redirectTo: '/'
             })
@@ -192,21 +208,60 @@
             $scope.controls = []
             $scope.chemicals = []
             $scope.command = 'Save'
+            $scope.switchLang = 'Chichewa'
+            $scope.currLang = 'English'
+            $scope.translated = false
             if(!$rootScope.editId) window.location = '#/diseases'
             $http.post('../fetch_disease', {
-                id: $rootScope.editId
+                id: $rootScope.editId,
+                lang: $scope.currLang
             }).success(function(response){
                 console.log(response)
                 console.log(response.general_information[0]['name'])
                 $scope.name = response.general_information[0]['name']
                 $scope.desc = response.general_information[0].desc
+                $scope.name_ch = response.general_information[0]['name_ch']
+                $scope.desc_ch = response.general_information[0].desc_ch
                 $scope.symptoms = response.symptoms
                 $scope.controls = response.controls
                 $scope.chemicals = response.chemicals
-
+                $scope.translated = (response.general_information[0].langs == 'eng,ch')
+                $scope.name_eng = $scope.name
+                $scope.desc_eng = $scope.desc       
             }).error(function(error){
                 window.location = '#/diseases'
             })
+
+            $scope.switchLangs = function(){
+                if($scope.currLang == 'English'){
+                    $scope.currLang = 'Chichewa'
+                    $scope.switchLang = 'English'
+                    $scope.name = $scope.name_ch
+                    $scope.desc = $scope.desc_ch
+                    $scope.refetchDiseaseInfo()
+                }
+                else if($scope.currLang == 'Chichewa'){
+                    $scope.currLang = 'English',
+                    $scope.switchLang = 'Chichewa'
+                    console.log($scope.name_eng, $scope.desc_eng)
+                    $scope.name = $scope.name_eng
+                    $scope.desc = $scope.desc_eng
+                    $scope.refetchDiseaseInfo()
+                }
+            }
+
+            $scope.refetchDiseaseInfo = function(){
+                $http.post('../fetch_disease', {
+                    id: $rootScope.editId,
+                    lang: $scope.currLang
+            }).success(function(response){
+                    $scope.symptoms = response.symptoms
+                    $scope.controls = response.controls
+                    $scope.translated = (response.general_information[0].langs == 'eng,ch')    
+                }).error(function(error){
+                    alert('Something broke, retry')
+                })
+            }
 
             $scope.popElement = function(classValue){
                 if($('.'+classValue).is(':hidden')){
@@ -222,7 +277,8 @@
                     $scope.command = 'Wait...'
                     $http.post('../add-symptom', {
                         name: $scope.symptomName,
-                        disease_id:  $rootScope.editId
+                        disease_id:  $rootScope.editId,
+                        lang: $scope.currLang
                     }).success(function(response){
                         $scope.symptoms.push({"id":response.lastElement, "name":$scope.symptomName, "disease_id":$rootScope.editId})
                         $scope.symptomName = ""
@@ -238,7 +294,8 @@
                     $scope.command = 'Wait...'
                     $http.post('../add-control', {
                         control: $scope.controlName,
-                        disease_id:  $rootScope.editId
+                        disease_id:  $rootScope.editId,
+                        lang: $scope.currLang
                     }).success(function(response){
                         $scope.controls.push({"id":response.lastElement, "control":$scope.controlName, "disease_id":$rootScope.editId})
                         $scope.controlName = ""
@@ -270,6 +327,92 @@
             }
         })
 
+        app.controller('reportQuery', function($scope, $http, $rootScope){
+            $scope.noFilterGeos = true
+            $scope.noFilterTime = true
+            $scope.noFilterDisease = true
+            $scope.districts = []
+            $scope.diseases = []
+            $scope.command = "Fetch Report"
+
+            $http.get('../reports/params').success(function(result){
+                $scope.diseases = result.diseases
+                $scope.districts = result.geos
+
+            }).error(function(err){
+                console.log(err)
+            })
+            $scope.startQuery = function(){
+                // check filters
+                let selectedDiseases = []
+                let selectedGeos = []
+                let from = "01/01/2022, 00:00:00"
+                let today = new Date()
+                day = String(today.getDate())
+                month = String(today.getMonth()+1)
+                year = String(today.getFullYear())
+                hours = String(today.getHours())
+                mins = String(today.getMinutes())
+                secs = String(today.getSeconds())
+                
+                to = day+"/"+month+'/'+year+'/'+", "+hours+":"+mins+":"+secs
+
+                if(!$scope.noFilterDisease) {
+                    selectedDiseases = $scope.diseaseSelections
+                }
+                else{
+                    let sd = []
+                    for(i in $scope.diseases){
+                        sd.push($scope.diseases[i]['id'])
+                    }
+                    selectedDiseases = sd
+                }
+                if(!$scope.noFilterGeos) {
+                    selectedGeos = $scope.geoSelections
+                }
+                else{
+                    let sg = []
+                    for(i in $scope.districts){
+                        sg.push($scope.districts[i]['district'])
+                    }
+                    selectedGeos = sg
+                }
+                if(!$scope.noFilterTime){
+                    from = $scope.dateFrom
+                    to = $scope.dateTo
+                }
+                from = from+", 00:00:00" 
+                to = to+", 00:00:00"
+                $scope.command = "Working.."
+                $http.post('../reports/full', {
+                    from: from,
+                    to: to,
+                    selectedGeos: selectedGeos,
+                    selectedDiseases: selectedDiseases
+                }).success(function(result){
+                    console.log(result)
+                    $rootScope.report = result
+                    window.location = "#/report"
+                }).error(function(err){
+                    alert('Error Fetching Report')
+                    $scope.command = "Fetch Report"
+                })    
+            }
+        })
+
+        app.controller('report', function($scope, $rootScope, $http){
+            $scope.diseaseReport = []
+            $scope.total_cases = 0
+            $scope.time = new Date()
+                
+            if(!$rootScope.report){
+                window.location = "#/"
+            }
+            else{
+                $scope.diseaseReport = $rootScope.report.report
+                $scope.total_cases = $rootScope.report.total_cases
+            }
+        })
         let activate = function(id){
             $('.list-item').css('background', 'white')
             $('.list-item').css('color', 'gray')

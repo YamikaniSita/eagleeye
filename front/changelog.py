@@ -15,11 +15,13 @@ class Changelog:
             elif el['type'] == 'new_symptom':
                 new_symptom = el['values']['name']
                 disease_name = el['values']['disease_key']
-                DBHandler().addSymptom(new_symptom, disease_name)
+                lang = el['values']['lang']
+                DBHandler().addSymptom(new_symptom, disease_name, lang)
             elif el['type'] == 'new_control':
                 new_control = el['values']['control']
                 disease_name = el['values']['disease_key']
-                DBHandler().addControl(new_control, disease_name)
+                lang = el['values']['lang']
+                DBHandler().addControl(new_control, disease_name, lang)
             elif el['type'] == 'new_chemical':
                 new_chemical = el['values']['chemical_name']
                 dosage = el['values']['dosage']

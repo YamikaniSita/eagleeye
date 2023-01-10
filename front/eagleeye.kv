@@ -11,6 +11,7 @@ WindowManager:
     AddSMSClient
     SettingsScreen
     LanguageSettings
+    WeatherScreen
 <SplashScreen>
     name: "Splash"
     Image:
@@ -60,6 +61,7 @@ WindowManager:
         size: "280dp", "180dp"
         pos_hint: {'center_x': .5, 'center_y':.5}
         padding: [10, 5]
+        on_press: root.goToWeather()
         MDLabel:
             text: "{}".format(root.temp)
             font_style: "H3"
@@ -307,3 +309,7 @@ WindowManager:
                 OneLineListItem:
                     text: "English"
                     on_press: root.lang_manager.switchLanguage('eng') 
+<WeatherScreen>
+    name: "WeatherScreen"
+    MDLabel:
+        text: "Nyengo"

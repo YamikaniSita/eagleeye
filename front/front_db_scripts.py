@@ -1,6 +1,7 @@
 import sqlite3
 import datetime
 from kivymd.uix.snackbar import Snackbar
+from lang_manager import LanguageManager
 
 
 class DBHandler:
@@ -20,17 +21,29 @@ class DBHandler:
         elif user_lang == 'eng':
             self.c.execute("SELECT _id, name FROM diseases WHERE name != 'Healthy'")
             records = self.c.fetchall()
-        print(records)
         return records
     def getDiseaseInfo(self, id):
         self.c.execute("SELECT * FROM diseases WHERE _id = {}".format(id))
         data = self.c.fetchall()
+        avail_langs = data[0][6]
+        if (avail_langs == 'eng,ch') and (LanguageManager().getUserLanguage() == 'ch'):
+            # Forgve me reader i was tired it was 8:02pm and i had not ate supper yet :)
+            self.c.execute("SELECT _id, name, desc_ch, image, name_ch, desc, langs FROM diseases WHERE _id = {}".format(id))
+            data = self.c.fetchall()
         return data
-    def getDiseaseSymptoms(self, id):
-        self.c.execute("SELECT name FROM symptoms WHERE disease_id = {}".format(id))
+    def getDiseaseSymptoms(self, id, avail_langs):
+        if (avail_langs == 'eng,ch') and (LanguageManager().getUserLanguage() == 'ch'):
+            q = "SELECT name FROM symptoms_ch WHERE disease_id = {}".format(id)
+        else:
+            q = "SELECT name FROM symptoms WHERE disease_id = {}".format(id)
+        self.c.execute(q)
         return self.c.fetchall()
-    def getDiseaseControls(self, id):
-        self.c.execute("SELECT * FROM controls WHERE disease_id = {}".format(id))
+    def getDiseaseControls(self, id, avail_langs):
+        if (avail_langs == 'eng,ch') and (LanguageManager().getUserLanguage() == 'ch'):
+            q = "SELECT * FROM controls_ch WHERE disease_id = {}".format(id)
+        else:
+            q = "SELECT * FROM controls WHERE disease_id = {}".format(id)
+        self.c.execute(q)
         return self.c.fetchall()
     def getDiseaseChemicals(self, id):
         self.c.execute("SELECT * FROM chemicals WHERE disease_id = {}".format(id))
@@ -56,18 +69,24 @@ class DBHandler:
     def get_db_version(self):
         self.c.execute("SELECT * FROM db_version")
         return self.c.fetchone()
-    def addSymptom(self, new_symptom, disease_name):
+    def addSymptom(self, new_symptom, disease_name, lang):
         q = "SELECT _id FROM diseases WHERE name = '{}'".format(disease_name)
         self.c.execute(q)
         result = self.c.fetchall()[0][0]
-        q = "INSERT INTO symptoms (name, disease_id) VALUES ('{}', {})".format(new_symptom, result)
+        if lang == 'English':
+            q = "INSERT INTO symptoms (name, disease_id) VALUES ('{}', {})".format(new_symptom, result)
+        elif lang == 'Chichewa':
+            q = "INSERT INTO symptoms_ch (name, disease_id) VALUES ('{}', {})".format(new_symptom, result)
         self.c.execute(q)
         return self.conn.commit()
-    def addControl(self, new_control, disease_name):
+    def addControl(self, new_control, disease_name, lang):
         q = "SELECT _id FROM diseases WHERE name = '{}'".format(disease_name)
         self.c.execute(q)
         result = self.c.fetchall()[0][0]
-        q = "INSERT INTO controls (control, disease_id) VALUES ('{}', {})".format(new_control, result)
+        if lang == 'English':
+            q = "INSERT INTO controls (control, disease_id) VALUES ('{}', {})".format(new_control, result)
+        elif lang == 'Chichewa':
+            q = "INSERT INTO controls_ch (control, disease_id) VALUES ('{}', {})".format(new_control, result)
         self.c.execute(q)
         return self.conn.commit()
     def addChemical(self, chemical_name, dosage, disease_name):

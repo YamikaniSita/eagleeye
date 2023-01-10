@@ -1,0 +1,40 @@
+<html>
+    <html>
+        <div class=''>
+            <i class='fa fa-plane border rounded text-green-500 font-bold p-4 bg-white z-500 shadow my-2 mx-6'></i><span class='font-bold'>Report Query</span>
+        </div>
+        <div class="z-500 border rounded shadow w-full p-4 bg-white my-4">
+            <h1 class="font-bold">Filter by Disease</h1>
+            <div class="inline-flex">
+                <input type="checkbox" class="p-2 m-2" ng-model="noFilterDisease" checked>All
+            </div>
+            <select class="block border p-2 rounded h-8" ng-disabled="noFilterDisease" ng-model="diseaseSelections" multiple>
+                <option ng-repeat="disease in diseases" value='{{disease.id}}'>{{disease.name}}</option>
+            </select>
+        </div>    
+        <div class="z-500 border rounded shadow w-full p-4 bg-white my-4">
+            <h1 class="font-bold">Filter by Geographic Location</h1>
+            <div class="inline-flex">
+                <input name = 'no_filter_geos' ng-model='noFilterGeos' type="checkbox" class="p-2 m-2" checked>All Recorded Geolocations
+            </div>
+            <select ng-disabled="noFilterGeos" class="block border p-2 rounded h-8" ng-model="geoSelections" multiple>
+                <option ng-repeat="district in districts" value='{{district.district}}'>{{district.district}}</option>
+            </select>
+        </div> 
+        <div class="z-500 border rounded shadow w-full p-4 bg-white my-4">
+            <h1 class="font-bold">Filter by Date</h1>
+            <div class="inline-flex block">
+                <input type="checkbox" ng-model='noFilterTime' class='m-2 p-2' checked>All time
+            </div>
+            <div class="block">
+                <div class="inline-flex">
+                    <label>From</label>
+                    <input type="date" class="border p-2 rounded m-2" ng-model="dateFrom" ng-disabled="noFilterTime">
+                    <label>To</label>
+                    <input type="date" class="border p-2 rounded m-2" ng-model="dateTo" ng-disabled="noFilterTime">
+                </div>
+            </div>
+        </select>
+        </div> 
+        <div ng-click="startQuery()" class="border rounded bg-blue-500 font-bold align-center text-white shadow w-32 p-4">{{command}}</div>
+    </html>

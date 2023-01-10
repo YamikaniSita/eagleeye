@@ -19,7 +19,8 @@ class ChangeLogManager():
                 "type": "new_symptom",
                 "values": {
                     "name": data_object['name'],
-                    "disease_key": data_object['disease_key']
+                    "disease_key": data_object['disease_key'],
+                    "lang": data_object['lang']
                 }
             }
         elif type == 'new_control':
@@ -27,7 +28,8 @@ class ChangeLogManager():
                 "type": "new_control",
                 "values": {
                     "control": data_object['control'],
-                    "disease_key": data_object['disease_key']
+                    "disease_key": data_object['disease_key'],
+                    "lang": data_object['lang']
                 }
             }
         elif type == 'new_chemical':

@@ -2,8 +2,8 @@ import json
 from urllib import response
 from flask import Flask, request, jsonify, make_response, render_template, redirect
 from flask_marshmallow import Marshmallow
-from models import db, Users, Disease, Symptom, Chemical, Control, ChangeLog, AppSessions, DiseaseLog, SMSClients
-from schemas import ChemicalSchema, ControlSchema, SymptomSchema, UserSchema, DiseaseSchema, ChangeLogSchema, AppSessionsSchema, DiseaseLogSchema, SMSCLientsSchema
+from models import ControlCH, SymptomCH, db, Users, Disease, Symptom, Chemical, Control, ChangeLog, AppSessions, DiseaseLog, SMSClients
+from schemas import ChemicalSchema, ControlSchema, ControlSchemaCH, SymptomSchema, SymptomSchemaCH, UserSchema, DiseaseSchema, ChangeLogSchema, AppSessionsSchema, DiseaseLogSchema, SMSCLientsSchema
 import hashlib
 from sqlalchemy import or_
 from changelog import ChangeLogManager
@@ -111,39 +111,59 @@ def get_diseases():
 @app.route('/app/fetch_disease', methods = ['POST'])
 def fetch_disease():
     disease_id = request.get_json(force = True)['id']
-    general_info = DiseaseSchema(many = True).dump(Disease.query.filter_by(id = disease_id))
-    symptoms = SymptomSchema(many=True).dump(Symptom.query.filter_by(disease_id = disease_id))
-    controls = ControlSchema(many = True).dump(Control.query.filter_by(disease_id = disease_id))
-    chemicals = ChemicalSchema(many = True).dump(Chemical.query.filter_by(disease_id = disease_id))
-
+    lang = request.get_json(force = True)['lang']
+    if lang == 'English':
+        general_info = DiseaseSchema(many = True).dump(Disease.query.filter_by(id = disease_id))
+        symptoms = SymptomSchema(many=True).dump(Symptom.query.filter_by(disease_id = disease_id))
+        controls = ControlSchema(many = True).dump(Control.query.filter_by(disease_id = disease_id))
+        chemicals = ChemicalSchema(many = True).dump(Chemical.query.filter_by(disease_id = disease_id))
+    elif lang == 'Chichewa':
+        general_info = DiseaseSchema(many = True).dump(Disease.query.filter_by(id = disease_id))
+        symptoms = SymptomSchemaCH(many=True).dump(SymptomCH.query.filter_by(disease_id = disease_id))
+        controls = ControlSchemaCH(many = True).dump(ControlCH.query.filter_by(disease_id = disease_id))
+        chemicals = ChemicalSchema(many = True).dump(Chemical.query.filter_by(disease_id = disease_id))
     return make_response(jsonify({"general_information":general_info, "symptoms": symptoms, "controls": controls, "chemicals": chemicals}))
 
 @app.route('/app/add-symptom', methods = ['POST'])
 def add_symptom():
     req_data = request.get_json(force = True)
+    lang = request.get_json(force = True)['lang']
     disease_ = Disease.query.filter_by(id = req_data['disease_id']).first()
     disease_ = disease_.name
     log_schema = ChangeLogSchema()
-    new_log = log_schema.load(ChangeLogManager().to_change_log_object(type='new_symptom', data_object={"disease_key":disease_, "name":req_data['name']}))
+    new_log = log_schema.load(ChangeLogManager().to_change_log_object(type='new_symptom', data_object={"disease_key":disease_, "name":req_data['name'], "lang":lang}))
     db.session.add(new_log)
     db.session.commit()
-    symptom = SymptomSchema().load(req_data)
-    db.session.add(symptom)
-    db.session.commit()
+    req_data.pop("lang")
+    if lang == 'English':
+        symptom = SymptomSchema().load(req_data)
+        db.session.add(symptom)
+        db.session.commit()
+    elif lang == 'Chichewa':
+        symptom = SymptomSchemaCH().load(req_data)
+        db.session.add(symptom)
+        db.session.commit()
     return make_response(jsonify({"lastElement":symptom.id}))
 
 @app.route('/app/add-control', methods = ['POST'])
 def add_control():
     req_data = request.get_json(force = True)
+    lang = request.get_json(force = True)['lang']
     disease_ = Disease.query.filter_by(id = req_data['disease_id']).first()
     disease_ = disease_.name
     log_schema = ChangeLogSchema()
-    new_log = log_schema.load(ChangeLogManager().to_change_log_object(type='new_control', data_object={"disease_key":disease_, "control":req_data['control']}))
+    new_log = log_schema.load(ChangeLogManager().to_change_log_object(type='new_control', data_object={"disease_key":disease_, "control":req_data['control'], "lang":lang}))
     db.session.add(new_log)
     db.session.commit()
-    control = ControlSchema().load(req_data)
-    db.session.add(control)
-    db.session.commit()
+    req_data.pop("lang")
+    if lang == 'English':
+        control = ControlSchema().load(req_data)
+        db.session.add(control)
+        db.session.commit()
+    elif lang == 'Chichewa':
+        control = ControlSchemaCH().load(req_data)
+        db.session.add(control)
+        db.session.commit()
     return make_response(jsonify({"lastElement":control.id}))
 
 @app.route('/app/add-chemical', methods = ['POST'])
@@ -209,6 +229,27 @@ def addClient():
     db.session.add(client)
     db.session.commit()
     return make_response(jsonify({'success':True}))
+
+@app.route('/app/reports/params', methods=['GET'])
+def get_report_params():
+    districts = AppSessionsSchema(many=True).dump(AppSessions.query.with_entities(AppSessions.district).distinct())
+    diseases = DiseaseSchema(many=True).dump(Disease.query.with_entities(Disease.name, Disease.id).all())
+    return make_response(jsonify({'geos':districts, 'diseases':diseases}))
+
+@app.route('/app/reports/full', methods=['POST'])
+def get_full_report():
+    diseases = request.get_json(force=True)['selectedDiseases']
+    geos = request.get_json(force=True)['selectedGeos']
+    # print(Dis in geos)
+    disease_totals = []
+    for i in diseases:
+        disease_totals.append((i, (DiseaseLog.query.filter(DiseaseLog.disease_detected == i, DiseaseLog.detection_locale.in_(geos)).count())))
+    report = []
+    sum = 0
+    for i in disease_totals:
+        sum = sum + int(i[1])
+        report.append({'name': DiseaseSchema(many=True).dump(Disease.query.with_entities(Disease.name).filter(Disease.id == i[0]))[0]['name'], "cases": i[1]})
+    return make_response(jsonify({"report":report, "total_cases":sum}))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True)

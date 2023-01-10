@@ -102,6 +102,23 @@ class Symptom(db.Model):
     def __repr__(self):
         return '<Symptom %d>' % self.id
     
+class SymptomCH(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    disease_id = db.Column(db.Integer, ForeignKey("disease.id"))
+
+    def create(self):
+        db.session.add(self)
+        db.session.commit()
+        return self
+    
+    def __init__(self, name, disease_id):
+        self.name = name
+        self.disease_id = disease_id
+
+    def __repr__(self):
+        return '<SymptomCH %d>' % self.id
+    
 class Control(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     control = db.Column(db.String(1000))
@@ -118,6 +135,23 @@ class Control(db.Model):
 
     def __repr__(self):
         return '<Control %d>' % self.id
+
+class ControlCH(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    control = db.Column(db.String(1000))
+    disease_id = db.Column(db.Integer, ForeignKey("disease.id"))
+
+    def create(self):
+        db.session.add(self)
+        db.session.commit()
+        return self
+    
+    def __init__(self, control, disease_id):
+        self.control = control
+        self.disease_id = disease_id
+
+    def __repr__(self):
+        return '<ControlCH %d>' % self.id
 
 class Chemical(db.Model):
     id = db.Column(db.Integer, primary_key=True)
