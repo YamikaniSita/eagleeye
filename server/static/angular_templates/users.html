@@ -12,13 +12,11 @@
                 <td class="font-bold table-cell p-2 text-center">NAME</td>
                 <td class="table-cell p-2 text-center">Status</td>
                 <td class="table-cell p-2 text-center">Role</td>
-                <td class="table-cell p-2 text-center">Action</td>
             </tr>
             <tr class='border-b' ng-repeat="user in users">
                 <td class="font-bold table-cell p-2 text-center">{{user.name}}</td>
                 <td class="table-cell p-2 text-center">Active</td>
                 <td class="table-cell p-2 text-center"><div class=''>{{user.role}}</div></td>
-                <td class="table-cell p-2 text-center"><a class="p-2 bg-red-500 text-white shadow border rounded" ng-if="user.role != 'admin_core'">Revoke Access</a></td>
             </tr>
             
         </table>

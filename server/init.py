@@ -1,4 +1,5 @@
 import json
+from pyexpat.errors import messages
 from urllib import response
 from flask import Flask, request, jsonify, make_response, render_template, redirect
 from flask_marshmallow import Marshmallow
@@ -75,6 +76,11 @@ def auth_admin():
                 resp = make_response(jsonify({'success': True}))
                 resp.set_cookie('user', current_user.name, max_age=60*60*24)
     return resp
+
+@app.route('/app/logout/')    
+def logout():
+    # response.set_cookie('user', "", max_age=0)
+    return redirect('/app/', code=302)
 
 @app.route('/app/panel/')
 def render_panel():
@@ -182,7 +188,7 @@ def add_chemical():
 
 @app.route('/app/reports/brief/')
 def generate_brief_report():
-    app_users = Users.query.filter(Users.role == 'app_user').count()
+    app_users = len(AppSessions.query.all())
     experts = Users.query.filter(Users.role == 'expert').count()
     admins = Users.query.filter(Users.role == 'admin').count() + 1#admin core is default 1
     total_diagnosis = len(DiseaseLog.query.all())
@@ -202,6 +208,8 @@ def generate_changelog():
 def addToLog():
     data = request.get_json(force = True)
     print(data)
+    recipients = []
+    messages = []
     for i in data['logs']:
         diseaseName = i[1]
         detected_at = i[2]
@@ -213,13 +221,15 @@ def addToLog():
         log_entry = DiseaseLogs().toDiseaseLog(diseaseName, detected_by, detected_at, detected_at_coords, detection_time)
         trigger_ = WarningSystem().isAlertRequired(log_entry)
         if trigger_:
-          WarningSystem().warn(log_entry)
-        #   log_entry['triggered_sms'] = 1
+            r = WarningSystem().warn(log_entry)
+            recipients.append(r[0])
+            messages.append(r[1])
+            log_entry['triggered_sms'] = 1
         log_entry = DiseaseLogSchema().load(log_entry)
         db.session.add(log_entry)
         db.session.commit()
 
-    return make_response(jsonify({'success':True}))
+    return make_response(jsonify({'recipients': recipients, 'messages': messages}))
 
 @app.route('/app/sms/add_client', methods = ['POST'])
 def addClient():
@@ -240,7 +250,6 @@ def get_report_params():
 def get_full_report():
     diseases = request.get_json(force=True)['selectedDiseases']
     geos = request.get_json(force=True)['selectedGeos']
-    # print(Dis in geos)
     disease_totals = []
     for i in diseases:
         disease_totals.append((i, (DiseaseLog.query.filter(DiseaseLog.disease_detected == i, DiseaseLog.detection_locale.in_(geos)).count())))

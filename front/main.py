@@ -17,6 +17,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.image import AsyncImage
 from kivy.logger import Logger
 import datetime
 from kivy.clock import Clock, mainthread
@@ -25,7 +26,8 @@ from disease_log import DiseaseLog
 from lang_manager import LanguageManager
 from time import time
 import math
-from plyer import sms                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+from plyer import sms, filechooser
+from PIL import Image                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
 prev_screen = None
 class SplashScreen(Screen):
@@ -117,9 +119,24 @@ class HomeScreen(Screen):
         if(len(pending_logs) > 0):
             # uplooad
             params = json.dumps({'logs': pending_logs})
-            req = UrlRequest(self.manager.url+'/logs/add', req_body=params, on_success=self.clearPending, timeout=30)
+            req = UrlRequest(self.manager.url+'/logs/add', req_body=params, on_success=self.clearPending)
             print("Network req triggered logs")
     def clearPending(self, req, response):
+        # send messages
+        messages = response['messages']
+        recipients = response['recipients']
+        for i in range(0, len(messages)):
+            msg = messages[i]
+            msg1, msg2 =  msg[:160], msg[160:320] # truncate sms limits
+            recipients_l = recipients[i]
+            for j in range(0, len(recipients_l)):
+                print("sending sms to", recipients_l[j]['phoneNumber'])
+                print(msg2)
+                try:
+                    sms.send(recipient = recipients_l[j]['phoneNumber'], message = msg1)
+                    sms.send(recipient = recipients_l[j]['phoneNumber'], message = msg2)
+                except:
+                    print("SMS Send failed")
         DBHandler().clearPending()
     def success(self, req, response):
         print(response)
@@ -306,12 +323,16 @@ class CameraScreen(Screen):
             "data/pba_quantized/model.tflite",
             "data/pba_quantized/labels.txt",
             on_detect=self.on_tflite_detect)
-
+    def pick_from_device(self):
+        print("[STATUS] pick_from_device triggered")
+        filechooser.open_file(on_selection = self.diagnose_from_file)
+    def diagnose_from_file(self, selection):
+        img = Image.open(selection[0])
+        w, h = img.size
+        self.tflite.async_detect(img, w, h)
     def on_back(self):
         self.manager.current = "HomeScreen"
     def on_camera_texture(self, ic):
-        # self.manager.current = "DiagnosisResults"
-        # camera = self.root.ids.camera._camera
         camera = self.ids.camera._camera
         pixels = camera._fbo.pixels
         w, h = camera.resolution
@@ -369,10 +390,10 @@ class DiagnosisResults(Screen):
 class AddSMSClient(Screen):
     client_name = ObjectProperty()
     client_phone = ObjectProperty()
-    def on_enter(self):
-        recipient = "0994437644"
-        message = "Hey Beautiful, your boyfriend loves you."
-        sms.send(recipient = recipient, message = message)
+    # def on_enter(self):
+    #     recipient = "0994437644"
+    #     message = "Hey Beautiful, your boyfriend loves you."
+    #     sms.send(recipient = recipient, message = message)
     def add_sms_client(self):
         client_name = self.client_name.text
         client_phone = self.client_phone.text
@@ -398,14 +419,14 @@ class LanguageSettings(Screen):
     def on_back(self):
         self.manager.current = "SettingsScreen"
 
-class WeatherScreen(Screen):
-    pass
 
 
 class Item(OneLineListItem):
     divider = None
 class Content(BoxLayout):
     lang_manager = LanguageManager()
+class ImageViewer(BoxLayout):
+    pass
 class WindowManager(ScreenManager):
     pass
 class EagleEyeApp(MDApp):

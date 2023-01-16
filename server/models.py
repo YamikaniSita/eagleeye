@@ -203,12 +203,13 @@ class DiseaseLog(db.Model):
         db.session.commit()
         return self
 
-    def __init__(self, detection_locale, detected_by, disease_detected, detected_coords, time):
+    def __init__(self, detection_locale, detected_by, disease_detected, detected_coords, time, triggered_sms):
         self.detection_locale = detection_locale
         self.detected_coords = detected_coords
         self.detected_by = detected_by
         self.disease_detected = disease_detected
         self.time = time
+        self.triggered_sms = triggered_sms
     
     def __repr__(self):
         return '<DiseaseLog %d>' % self.id

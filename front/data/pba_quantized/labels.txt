@@ -1,11 +1,4 @@
-0 BacterialSpot
-1 EarlyBlight
-2 Healthy
-3 LateBlight
-4 LeafMold 
-5 MosaicVirus
-6 Others
-7 SeptoriaLeaf
-8 SpiderMite
-9 TargetSpot
-10 YellowLeaf
+0 EarlyBlight
+1 Healthy
+2 Others
+3 YellowLeaf

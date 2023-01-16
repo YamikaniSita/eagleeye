@@ -110,7 +110,7 @@ class DiseaseLogSchema(SQLAlchemyAutoSchema):
     id = fields.Number(dump_only = True)
     detection_locale = fields.String(required = True)
     detected_coords = fields.String(required = True)
-    triggered_sms = fields.Integer(required = False)
+    triggered_sms = fields.Integer(required = True)
     detected_by = fields.Integer(required = True)
     disease_detected = fields.Integer(required = True)
     time = fields.String(required = True)

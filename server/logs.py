@@ -9,6 +9,7 @@ class DiseaseLogs:
             'detection_locale':detection_locale,
             'detected_coords':detection_coords,
             'detected_by':detectedBy,
-            'time': time
+            'time': time,
+            'triggered_sms': 0
         }
         return dict_

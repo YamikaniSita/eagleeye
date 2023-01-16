@@ -11,7 +11,6 @@ WindowManager:
     AddSMSClient
     SettingsScreen
     LanguageSettings
-    WeatherScreen
 <SplashScreen>
     name: "Splash"
     Image:
@@ -189,7 +188,9 @@ WindowManager:
             icon_left: "magnify"
             id: symptoms
             text_hint: "{}".format(root.lang_manager.getPrompt('search_symptoms_hint'))   
-
+<ImageViewer>
+    Image:
+        source: "sample.png"
 <CameraScreen>
     name: "CameraScreen"
     MDRelativeLayout:
@@ -213,7 +214,7 @@ WindowManager:
             mode: "center"
             icon_color: 0, 1, 0, 1
             left_action_items: [["arrow-left", lambda x: root.on_back()]]
-            right_action_items: [["file", lambda x: x]]
+            right_action_items: [["file", lambda x: root.pick_from_device()]]
             mode: "center"
             type: "bottom"
             on_action_button: root.on_camera_texture(self.icon)
@@ -235,9 +236,6 @@ WindowManager:
             TwoLineListItem:
                 text: "{}".format(root.lang_manager.getPrompt('condition_detected'))
                 secondary_text: "{}".format(root.detected_label)
-            TwoLineListItem:
-                text: "{}".format(root.lang_manager.getPrompt('result_confidence'))
-                secondary_text: "@ {}%".format(root.detected_conf_)
     MDRaisedButton:
         text: "{}".format(root.lang_manager.getPrompt('view_advice'))
         margin: "40"
@@ -309,7 +307,3 @@ WindowManager:
                 OneLineListItem:
                     text: "English"
                     on_press: root.lang_manager.switchLanguage('eng') 
-<WeatherScreen>
-    name: "WeatherScreen"
-    MDLabel:
-        text: "Nyengo"

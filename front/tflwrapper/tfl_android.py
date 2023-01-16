@@ -102,7 +102,11 @@ class TFLWrapperAndroid(TFLWrapper):
         cropsize = min(cw, ch)
 
         # use pillow
-        image = Image.frombytes("RGBA", (cw, ch), frame, "raw")
+        try:
+            image = Image.frombytes("RGBA", (cw, ch), frame, "raw")
+        except:
+            # image prolly from file..hope it doesnt crash
+            image = frame
         # left = (cw - cropsize) / 2
         # top = (ch - cropsize) / 2
         # image = image.crop((left, top, left + cropsize, top + cropsize))

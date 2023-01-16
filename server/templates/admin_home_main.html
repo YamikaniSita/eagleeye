@@ -34,7 +34,7 @@
                     <i class='border rounded rounded-full fa fa-user p-2 m-2'></i>
                 </div>
                 <div>
-                    <div class="block font-bold block text-gray-600">{{user_details.name}}</div>
+                    <div class="block font-bold block text-gray-600">{{user_details.name}}<a href='../logout/' class='text-underline text-red-500'> &nbsp;Logout</a></div>
                     <div class="block text-gray-400">{{user_details.role}}</div>
                 </div>
             </div>
@@ -42,10 +42,11 @@
         <div class="w-full h-screen inline-flex">
             <div class='bg-white border shadow w-1/4 h-screen p-4 no-print'>
                 <a href='#/' class='align-center block p-2 my-2 rounded list-item rounded' id="qa">Quick Analytics</a>
-                <a href='#/users'class='text-gray-600 align-center block my-2 p-2 list-item rounded' id="user">System Users</a>
-                <a class='text-gray-600 align-center block my-2 p-2 list-item rounded' id="sms">SMS alerts</a>
-                <a class='text-gray-600 align-center block my-2 p-2 list-item rounded' id="ma">Maps</a>
                 <a href='#/diseases' class='text-gray-600 align-center block my-2 p-2 list-item rounded' id='kb'>Disease Information</a>
+            {% if user_details.role != 'expert' %}
+                <a href='#/users' class='text-gray-600 align-center block my-2 p-2 list-item rounded' id="user">System Users</a>
+                <a href='#/full-report' class='text-gray-600 align-center block my-2 p-2 list-item rounded' id='reports'>Disease Report</a>
+            {% endif %}
             </div>
             <div class="w-3/4 shadow border ng-view p-4"></div>
         </div>
@@ -328,6 +329,7 @@
         })
 
         app.controller('reportQuery', function($scope, $http, $rootScope){
+            activate($('#reports'))
             $scope.noFilterGeos = true
             $scope.noFilterTime = true
             $scope.noFilterDisease = true
@@ -346,17 +348,7 @@
                 // check filters
                 let selectedDiseases = []
                 let selectedGeos = []
-                let from = "01/01/2022, 00:00:00"
-                let today = new Date()
-                day = String(today.getDate())
-                month = String(today.getMonth()+1)
-                year = String(today.getFullYear())
-                hours = String(today.getHours())
-                mins = String(today.getMinutes())
-                secs = String(today.getSeconds())
-                
-                to = day+"/"+month+'/'+year+'/'+", "+hours+":"+mins+":"+secs
-
+        
                 if(!$scope.noFilterDisease) {
                     selectedDiseases = $scope.diseaseSelections
                 }
@@ -377,16 +369,8 @@
                     }
                     selectedGeos = sg
                 }
-                if(!$scope.noFilterTime){
-                    from = $scope.dateFrom
-                    to = $scope.dateTo
-                }
-                from = from+", 00:00:00" 
-                to = to+", 00:00:00"
                 $scope.command = "Working.."
                 $http.post('../reports/full', {
-                    from: from,
-                    to: to,
                     selectedGeos: selectedGeos,
                     selectedDiseases: selectedDiseases
                 }).success(function(result){
